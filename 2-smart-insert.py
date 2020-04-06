@@ -1,4 +1,10 @@
 import csv
+import sys
+import time
+from collections import OrderedDict
+from datetime import datetime
+
+from pymongo import MongoClient
 
 
 def parse(val):
@@ -46,18 +52,10 @@ def geo_loc(doc):
     try:
         lat = float(doc.pop('lat'))
         long = float(doc.pop('long'))
-        doc['loc'] = {'type': 'Point', 'coordinates': [long, lat]}
+        if lat != 0.0 and long != 0.0:
+            doc['loc'] = {'type': 'Point', 'coordinates': [long, lat]}
     except KeyError:
         return
-
-
-def get_fips():
-    with open("jhu/csse_covid_19_data/UID_ISO_FIPS_LookUp_Table.csv", encoding="utf-8-sig") as file:
-        csv_file = csv.DictReader(file)
-        fips = []
-        for row in csv_file:
-            fips.append(dict(row))
-        return fips
 
 
 def clean_docs(docs):
@@ -80,9 +78,9 @@ def find_same_area_country_state(docs, country, state):
             return d
 
 
-def find_same_area_fips(docs, fips):
+def find_same_area_uid(docs, fips):
     for d in docs:
-        if d.get('fips') == fips:
+        if d.get('uid') == fips:
             return d
 
 
@@ -91,32 +89,32 @@ def get_all_csv_as_docs():
         csv_file = csv.DictReader(file)
         fips = []
         for row in csv_file:
-            fips.append(dict(row))
+            fips.append(OrderedDict(row))
     with open("jhu/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_global.csv", encoding="utf-8-sig") as file:
         csv_file = csv.DictReader(file)
         confirmed_global_docs = []
         for row in csv_file:
-            confirmed_global_docs.append(dict(row))
+            confirmed_global_docs.append(OrderedDict(row))
     with open("jhu/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_deaths_global.csv", encoding="utf-8-sig") as file:
         csv_file = csv.DictReader(file)
         deaths_global_docs = []
         for row in csv_file:
-            deaths_global_docs.append(dict(row))
+            deaths_global_docs.append(OrderedDict(row))
     with open("jhu/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_recovered_global.csv", encoding="utf-8-sig") as file:
         csv_file = csv.DictReader(file)
         recovered_global_docs = []
         for row in csv_file:
-            recovered_global_docs.append(dict(row))
+            recovered_global_docs.append(OrderedDict(row))
     with open("jhu/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_US.csv", encoding="utf-8-sig") as file:
         csv_file = csv.DictReader(file)
         confirmed_us_docs = []
         for row in csv_file:
-            confirmed_us_docs.append(dict(row))
+            confirmed_us_docs.append(OrderedDict(row))
     with open("jhu/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_deaths_US.csv", encoding="utf-8-sig") as file:
         csv_file = csv.DictReader(file)
         deaths_us_docs = []
         for row in csv_file:
-            deaths_us_docs.append(dict(row))
+            deaths_us_docs.append(OrderedDict(row))
     return fips, confirmed_global_docs, deaths_global_docs, recovered_global_docs, confirmed_us_docs, deaths_us_docs
 
 
@@ -219,39 +217,81 @@ def combine_global_and_fips(confirmed_global, deaths_global, recovered_global, f
 def combine_us_and_fips(confirmed_us, deaths_us, fips):
     combined = []
     for doc in confirmed_us:
-        fips_value = doc.get('fips')
+        uid_value = doc.get('uid')
 
-        doc1 = find_same_area_fips(deaths_us, fips_value)
+        doc1 = find_same_area_uid(deaths_us, uid_value)
         if doc1:
             deaths_us.remove(doc1)
 
-        doc2 = find_same_area_fips(fips, fips_value)
+        doc2 = find_same_area_uid(fips, uid_value)
         if doc2:
             fips.remove(doc2)
         else:
-            print("No FIPS found for", doc['country'], '=>', doc)
+            print("No UID found for", doc['combined_name'], '=>', doc)
 
         combined.append({'confirmed_us': doc, 'deaths_us': doc1, 'fips': doc2})
     return combined
 
 
+def to_iso_date(date):
+    return datetime.strptime(date, '%m/%d/%y')
+
+
 def doc_generation(combined):
-    for docs in combined[:1]:
+    mdb_docs = []
+    for docs in combined:
         cg = docs.get('confirmed_global')
         dg = docs.get('deaths_global')
         rg = docs.get('recovered_global')
         usc = docs.get('confirmed_us')
         usd = docs.get('deaths_us')
         fips = docs.get('fips')
-        print(cg)
-        print(dg)
-        print(rg)
-        print(usc)
-        print(usd)
-        print(fips)
+
+        if cg:
+            for k1, v1 in cg.items():
+                if '/' in k1:
+                    doc = fips.copy()
+                    doc['date'] = to_iso_date(k1)
+                    doc['confirmed'] = v1
+
+                    for k2, v2 in dg.items():
+                        if k1 == k2:
+                            doc['deaths'] = v2
+
+                    if rg:
+                        for k3, v3 in rg.items():
+                            if k1 == k3:
+                                doc['recovered'] = v3
+                    mdb_docs.append(doc)
+
+        if usc:
+            for k1, v1 in usc.items():
+                if '/' in k1:
+                    doc = fips.copy()
+                    doc['date'] = to_iso_date(k1)
+                    doc['confirmed'] = v1
+                    doc['population'] = usd['population']
+
+                    for k2, v2 in usd.items():
+                        if k1 == k2:
+                            doc['deaths'] = v2
+                    mdb_docs.append(doc)
+
+    return mdb_docs
+
+
+def mongodb_insert(docs):
+    uri = sys.argv[1]
+    if not uri:
+        print('MongoDB URI is missing in cmd line arg 1.')
+    client = MongoClient(uri)
+    coll = client.get_database('coronavirus').get_collection('statistics')
+    coll.delete_many({})
+    return coll.insert_many(docs)
 
 
 def main():
+    start = time.time()
     fips, confirmed_global, deaths_global, recovered_global, confirmed_us, deaths_us = clean_all_docs(get_all_csv_as_docs())
     data_hacking(recovered_global, fips, confirmed_us, deaths_us)
     remove_us_data(confirmed_global, deaths_global, recovered_global)
@@ -260,6 +300,9 @@ def main():
     print_warnings(deaths_global, recovered_global, deaths_us)
     combined = combined_global + combined_us
     docs = doc_generation(combined)
+    print(len(docs), 'documents have been generated in', round(time.time() - start, 2), 's')
+    start = time.time()
+    print(len(mongodb_insert(docs).inserted_ids), 'have been inserted in', round(time.time() - start, 2), 's')
 
 
 if __name__ == '__main__':
