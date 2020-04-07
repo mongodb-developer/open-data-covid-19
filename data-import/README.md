@@ -31,7 +31,7 @@ Creating indexes and metadata in 6.28 s
 
 #### Example of a clean document from the global time series:
 
-```json
+```javascript
 {
 	"_id" : ObjectId("5e8cd51700c98085a07a8d25"),
 	"uid" : 250,
@@ -57,7 +57,7 @@ Creating indexes and metadata in 6.28 s
 
 #### Example of a clean document from the US time series:
 
-```json
+```javascript
 {
 	"_id" : ObjectId("5e8cd51800c98085a07ce9e1"),
 	"uid" : 84036115,
