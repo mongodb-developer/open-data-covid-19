@@ -148,7 +148,6 @@ def remove_us_data(confirmed, deaths, recovered):
 
 
 def data_hacking(recovered, fips, confirmed_us, deaths_us):
-    pass
     # Fixing data for Canada
     for d in recovered:
         if d.get('country') == 'Canada' and is_blank(d.get('state')):
