@@ -155,10 +155,10 @@ def data_hacking(recovered, fips, confirmed_us, deaths_us):
             d['state'] = 'Recovered'
     # Adding missing Malawi
     fips.append({'uid': 454, 'country_iso2': 'MW', 'country_iso3': 'MWI', 'country_code': 454, 'country': 'Malawi', 'combined_name': 'Malawi',
-                 'loc': {'type': 'Point', 'coordinates': [34.3015, -13.2543]}})
-    # Fixing South Sudan
-    fips.append({'uid': 728, 'country_iso2': 'SS', 'country_iso3': 'SSD', 'country_code': 728, 'country': 'South Sudan', 'combined_name': 'South Sudan',
-                 'loc': {'type': 'Point', 'coordinates': [31.5952, 4.8472]}})
+                 'loc': {'type': 'Point', 'coordinates': [34.3015, -13.2543]}, 'population': 19013166})
+    # Adding Sao Tome and Principe
+    fips.append({'uid': 239, 'country_iso2': 'ST', 'country_iso3': 'STP', 'country_code': 239, 'country': 'Sao Tome and Principe', 'combined_name': 'Sao Tome and Principe',
+                 'loc': {'type': 'Point', 'coordinates': [6.602781, 0.255436]}, 'population': 218206})
     # Fixing Falkland Islands
     for d in fips:
         if d.get('state') == 'Falkland Islands (Malvinas)':
@@ -270,7 +270,6 @@ def doc_generation(combined):
                     doc = fips.copy()
                     doc['date'] = to_iso_date(k1)
                     doc['confirmed'] = v1
-                    doc['population'] = usd['population']
 
                     for k2, v2 in usd.items():
                         if k1 == k2:
