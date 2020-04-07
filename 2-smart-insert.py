@@ -153,12 +153,6 @@ def data_hacking(recovered, fips, confirmed_us, deaths_us):
     for d in recovered:
         if d.get('country') == 'Canada' and is_blank(d.get('state')):
             d['state'] = 'Recovered'
-    # Adding missing Malawi
-    fips.append({'uid': 454, 'country_iso2': 'MW', 'country_iso3': 'MWI', 'country_code': 454, 'country': 'Malawi', 'combined_name': 'Malawi',
-                 'loc': {'type': 'Point', 'coordinates': [34.3015, -13.2543]}, 'population': 19013166})
-    # Adding Sao Tome and Principe
-    fips.append({'uid': 239, 'country_iso2': 'ST', 'country_iso3': 'STP', 'country_code': 239, 'country': 'Sao Tome and Principe', 'combined_name': 'Sao Tome and Principe',
-                 'loc': {'type': 'Point', 'coordinates': [6.602781, 0.255436]}, 'population': 218206})
     # Fixing Falkland Islands
     for d in fips:
         if d.get('state') == 'Falkland Islands (Malvinas)':
