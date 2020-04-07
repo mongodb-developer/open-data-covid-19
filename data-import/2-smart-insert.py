@@ -4,6 +4,7 @@ import time
 from collections import OrderedDict
 from datetime import datetime
 
+import pymongo
 from pymongo import MongoClient
 
 
@@ -40,7 +41,6 @@ def clean_key(string):
         return 'state'
     if string == 'Combined_Key':
         return 'combined_name'
-
     return str.lower(string)
 
 
@@ -61,14 +61,12 @@ def geo_loc(doc):
 def clean_docs(docs):
     docs_array = []
     for doc in docs:
-        # print("Before: " + str(doc))
         new_doc = {}
         for k, v in doc.items():
             if not is_blank(clean_key(v)):
                 new_doc[clean_key(k)] = parse(v)
         geo_loc(new_doc)
         docs_array.append(new_doc)
-        # print("After: " + str(new_doc))
     return docs_array
 
 
@@ -122,31 +120,6 @@ def clean_all_docs(csvs):
     return map(lambda x: clean_docs(x), csvs)
 
 
-def remove_us_data(confirmed, deaths, recovered):
-    # Removing the US as we will add the detailed data for the US
-    confirmed_us = {}
-    deaths_us = {}
-    recovered_us = {}
-    for i in confirmed:
-        if i.get('country') == 'US':
-            confirmed_us = i
-    for i in deaths:
-        if i.get('country') == 'US':
-            deaths_us = i
-    for i in recovered:
-        if i.get('country') == 'US':
-            recovered_us = i
-    confirmed.remove(confirmed_us)
-    deaths.remove(deaths_us)
-    recovered.remove(recovered_us)
-    if not confirmed_us:
-        print('ERROR: Could not find the US line in the confirmed global CSV.')
-    if not deaths_us:
-        print('ERROR: Could not find the US line in the deaths global CSV.')
-    if not recovered_us:
-        print('ERROR: Could not find the US line in the recovered global CSV.')
-
-
 def data_hacking(recovered, fips, confirmed_us, deaths_us):
     # Fixing data for Canada
     for d in recovered:
@@ -157,15 +130,15 @@ def data_hacking(recovered, fips, confirmed_us, deaths_us):
         if d.get('state') == 'Falkland Islands (Malvinas)':
             d['state'] = 'Falkland Islands (Islas Malvinas)'
     # Fixing FIPS type in confirmed_us
-    for d in confirmed_us:
-        val = d.get('fips')
-        if val:
-            d['fips'] = int(val)
+    # for d in confirmed_us:
+    #     val = d.get('fips')
+    #     if val:
+    #         d['fips'] = int(val)
     # Fixing FIPS type in death_us
-    for d in deaths_us:
-        val = d.get('fips')
-        if val:
-            d['fips'] = int(val)
+    # for d in deaths_us:
+    #     val = d.get('fips')
+    #     if val:
+    #         d['fips'] = int(val)
 
 
 def print_warnings(deaths, recovered, deaths_us):
@@ -245,10 +218,11 @@ def doc_generation(combined):
                 if '/' in k1:
                     doc = fips.copy()
                     doc['date'] = to_iso_date(k1)
-                    doc['confirmed'] = v1
+                    if cg['country'] != 'US':
+                        doc['confirmed'] = v1
 
                     for k2, v2 in dg.items():
-                        if k1 == k2:
+                        if k1 == k2 and cg['country'] != 'US':
                             doc['deaths'] = v2
 
                     if rg:
@@ -272,21 +246,47 @@ def doc_generation(combined):
     return mdb_docs
 
 
-def mongodb_insert(docs):
+def get_mongodb_client():
     uri = sys.argv[1]
     if not uri:
         print('MongoDB URI is missing in cmd line arg 1.')
-    client = MongoClient(uri)
+        exit(1)
+    return MongoClient(uri)
+
+
+def mongodb_insert(client, docs):
     coll = client.get_database('coronavirus').get_collection('statistics')
-    coll.delete_many({})
+    coll.drop()
     return coll.insert_many(docs)
+
+
+def create_indexes(client):
+    coll = client.get_database('coronavirus').get_collection('statistics')
+    coll.create_index([('country', pymongo.ASCENDING), ('state', pymongo.ASCENDING), ('city', pymongo.ASCENDING)])
+    coll.create_index('country_iso3')
+    coll.create_index('uid')
+    coll.create_index('date')
+    coll.create_index([("loc", pymongo.GEOSPHERE)])
+
+
+def create_metadata(client):
+    coll = client.get_database('coronavirus').get_collection('statistics')
+    countries = list(coll.distinct('country'))
+    states = list(coll.distinct('state'))
+    cities = list(coll.distinct('city'))
+    iso3s = list(coll.distinct('country_iso3'))
+    uids = list(coll.distinct('uid'))
+    dates = list(coll.aggregate([{'$sort': {'date': 1}}, {'$group': {'_id': None, 'first': {'$first': '$date'}, 'last': {'$last': '$date'}}}, {'$project': {'_id': 0}}]))[0]
+
+    metadata_coll = client.get_database('coronavirus').get_collection('metadata')
+    metadata_coll.insert_one(
+        {'_id': 'metadata', 'countries': countries, 'states': states, 'cities': cities, 'iso3s': iso3s, 'uids': uids, 'first_date': dates['first'], 'last_date': dates['last']})
 
 
 def main():
     start = time.time()
     fips, confirmed_global, deaths_global, recovered_global, confirmed_us, deaths_us = clean_all_docs(get_all_csv_as_docs())
     data_hacking(recovered_global, fips, confirmed_us, deaths_us)
-    remove_us_data(confirmed_global, deaths_global, recovered_global)
     combined_global = combine_global_and_fips(confirmed_global, deaths_global, recovered_global, fips)
     combined_us = combine_us_and_fips(confirmed_us, deaths_us, fips)
     print_warnings(deaths_global, recovered_global, deaths_us)
@@ -294,7 +294,10 @@ def main():
     docs = doc_generation(combined)
     print(len(docs), 'documents have been generated in', round(time.time() - start, 2), 's')
     start = time.time()
-    print(len(mongodb_insert(docs).inserted_ids), 'have been inserted in', round(time.time() - start, 2), 's')
+    client = get_mongodb_client()
+    print(len(mongodb_insert(client, docs).inserted_ids), 'have been inserted in', round(time.time() - start, 2), 's')
+    create_indexes(client)
+    create_metadata(client)
 
 
 if __name__ == '__main__':
