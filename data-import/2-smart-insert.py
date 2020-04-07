@@ -83,32 +83,32 @@ def find_same_area_uid(docs, fips):
 
 
 def get_all_csv_as_docs():
-    with open("../jhu/csse_covid_19_data/UID_ISO_FIPS_LookUp_Table.csv", encoding="utf-8-sig") as file:
+    with open("jhu/csse_covid_19_data/UID_ISO_FIPS_LookUp_Table.csv", encoding="utf-8-sig") as file:
         csv_file = csv.DictReader(file)
         fips = []
         for row in csv_file:
             fips.append(OrderedDict(row))
-    with open("../jhu/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_global.csv", encoding="utf-8-sig") as file:
+    with open("jhu/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_global.csv", encoding="utf-8-sig") as file:
         csv_file = csv.DictReader(file)
         confirmed_global_docs = []
         for row in csv_file:
             confirmed_global_docs.append(OrderedDict(row))
-    with open("../jhu/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_deaths_global.csv", encoding="utf-8-sig") as file:
+    with open("jhu/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_deaths_global.csv", encoding="utf-8-sig") as file:
         csv_file = csv.DictReader(file)
         deaths_global_docs = []
         for row in csv_file:
             deaths_global_docs.append(OrderedDict(row))
-    with open("../jhu/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_recovered_global.csv", encoding="utf-8-sig") as file:
+    with open("jhu/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_recovered_global.csv", encoding="utf-8-sig") as file:
         csv_file = csv.DictReader(file)
         recovered_global_docs = []
         for row in csv_file:
             recovered_global_docs.append(OrderedDict(row))
-    with open("../jhu/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_US.csv", encoding="utf-8-sig") as file:
+    with open("jhu/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_US.csv", encoding="utf-8-sig") as file:
         csv_file = csv.DictReader(file)
         confirmed_us_docs = []
         for row in csv_file:
             confirmed_us_docs.append(OrderedDict(row))
-    with open("../jhu/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_deaths_US.csv", encoding="utf-8-sig") as file:
+    with open("jhu/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_deaths_US.csv", encoding="utf-8-sig") as file:
         csv_file = csv.DictReader(file)
         deaths_us_docs = []
         for row in csv_file:
@@ -129,16 +129,6 @@ def data_hacking(recovered, fips, confirmed_us, deaths_us):
     for d in fips:
         if d.get('state') == 'Falkland Islands (Malvinas)':
             d['state'] = 'Falkland Islands (Islas Malvinas)'
-    # Fixing FIPS type in confirmed_us
-    # for d in confirmed_us:
-    #     val = d.get('fips')
-    #     if val:
-    #         d['fips'] = int(val)
-    # Fixing FIPS type in death_us
-    # for d in deaths_us:
-    #     val = d.get('fips')
-    #     if val:
-    #         d['fips'] = int(val)
 
 
 def print_warnings(deaths, recovered, deaths_us):
@@ -279,6 +269,7 @@ def create_metadata(client):
     dates = list(coll.aggregate([{'$sort': {'date': 1}}, {'$group': {'_id': None, 'first': {'$first': '$date'}, 'last': {'$last': '$date'}}}, {'$project': {'_id': 0}}]))[0]
 
     metadata_coll = client.get_database('coronavirus').get_collection('metadata')
+    metadata_coll.delete_one({'_id': 'metadata'})
     metadata_coll.insert_one(
         {'_id': 'metadata', 'countries': countries, 'states': states, 'cities': cities, 'iso3s': iso3s, 'uids': uids, 'first_date': dates['first'], 'last_date': dates['last']})
 
@@ -296,8 +287,10 @@ def main():
     start = time.time()
     client = get_mongodb_client()
     print(len(mongodb_insert(client, docs).inserted_ids), 'have been inserted in', round(time.time() - start, 2), 's')
+    start = time.time()
     create_indexes(client)
     create_metadata(client)
+    print('Creating indexes and metadata in', round(time.time() - start, 2), 's')
 
 
 if __name__ == '__main__':
