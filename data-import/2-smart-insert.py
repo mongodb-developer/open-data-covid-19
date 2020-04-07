@@ -83,32 +83,32 @@ def find_same_area_uid(docs, fips):
 
 
 def get_all_csv_as_docs():
-    with open("jhu/csse_covid_19_data/UID_ISO_FIPS_LookUp_Table.csv", encoding="utf-8-sig") as file:
+    with open("../jhu/csse_covid_19_data/UID_ISO_FIPS_LookUp_Table.csv", encoding="utf-8-sig") as file:
         csv_file = csv.DictReader(file)
         fips = []
         for row in csv_file:
             fips.append(OrderedDict(row))
-    with open("jhu/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_global.csv", encoding="utf-8-sig") as file:
+    with open("../jhu/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_global.csv", encoding="utf-8-sig") as file:
         csv_file = csv.DictReader(file)
         confirmed_global_docs = []
         for row in csv_file:
             confirmed_global_docs.append(OrderedDict(row))
-    with open("jhu/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_deaths_global.csv", encoding="utf-8-sig") as file:
+    with open("../jhu/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_deaths_global.csv", encoding="utf-8-sig") as file:
         csv_file = csv.DictReader(file)
         deaths_global_docs = []
         for row in csv_file:
             deaths_global_docs.append(OrderedDict(row))
-    with open("jhu/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_recovered_global.csv", encoding="utf-8-sig") as file:
+    with open("../jhu/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_recovered_global.csv", encoding="utf-8-sig") as file:
         csv_file = csv.DictReader(file)
         recovered_global_docs = []
         for row in csv_file:
             recovered_global_docs.append(OrderedDict(row))
-    with open("jhu/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_US.csv", encoding="utf-8-sig") as file:
+    with open("../jhu/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_US.csv", encoding="utf-8-sig") as file:
         csv_file = csv.DictReader(file)
         confirmed_us_docs = []
         for row in csv_file:
             confirmed_us_docs.append(OrderedDict(row))
-    with open("jhu/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_deaths_US.csv", encoding="utf-8-sig") as file:
+    with open("../jhu/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_deaths_US.csv", encoding="utf-8-sig") as file:
         csv_file = csv.DictReader(file)
         deaths_us_docs = []
         for row in csv_file:
