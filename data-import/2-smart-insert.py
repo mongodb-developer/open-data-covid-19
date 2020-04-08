@@ -125,10 +125,6 @@ def data_hacking(recovered, fips, confirmed_us, deaths_us):
     for d in recovered:
         if d.get('country') == 'Canada' and is_blank(d.get('state')):
             d['state'] = 'Recovered'
-    # Fixing Falkland Islands
-    for d in fips:
-        if d.get('state') == 'Falkland Islands (Malvinas)':
-            d['state'] = 'Falkland Islands (Islas Malvinas)'
 
 
 def print_warnings(deaths, recovered, deaths_us):
