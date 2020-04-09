@@ -10,4 +10,6 @@ RUN sed -i 's|//deb|//ftp.fr|g' /etc/apt/sources.list && \
     rm -rf mongodb-connector-odbc-1.3.0-ubuntu-16.04-64.tar.gz
 ADD odbc.ini /etc/odbc.ini
 ADD odbc-query.py /odbc-query.py
+ENV ODBCINI /etc/odbc.ini
 CMD ["python3", "odbc-query.py"]
+
