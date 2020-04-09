@@ -7,7 +7,7 @@ When you first create a new document in Tableau, you can choose to use 'MongoDB 
 We've enabled the Atlas MongoDB BI Connector for you, so you can use tools like Tableau which expect a relational database as a data source.
 The MongoDB BI Connector exposes a MySQL interface to the MongoDB database.
 
-To connect Tableau to the coronavirus database, select "MongoDB BI Connector" in the "Connect" panel.
+To connect Tableau to the covid19 database, select "MongoDB BI Connector" in the "Connect" panel.
 
 If you haven't used this data source type before, you'll find it by clicking the "More..." button.
 In this case you may also need to install an ODBC provider (I needed to install iODBC on my Mac, for example) and the MySQL ODBC connector from Oracle. You'll find instructions to install these by following the link on the connection dialog.
@@ -20,7 +20,7 @@ The details are:
 
 Server: covid-19-biconnector.hip2i.mongodb.net
 Port: 27015
-Database: coronavirus
+Database: covid19
 Username: readonly
 Password: readonly
 

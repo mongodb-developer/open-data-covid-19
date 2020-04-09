@@ -86,14 +86,13 @@ public class Metadata {
     @Override
     public String toString() {
         final StringBuffer sb = new StringBuffer("Metadata:").append("\n");
-        sb.append("id\t\t\t=> ").append(id).append("\n");
-        sb.append("firstDate\t=> ").append(firstDate).append("\n");
-        sb.append("lastDate\t=> ").append(lastDate).append("\n");
-        sb.append("countries\t=> ").append(countries).append("\n");
-        sb.append("states\t\t=> ").append(states).append("\n");
-        sb.append("cities\t\t=> ").append(cities).append("\n");
-        sb.append("iso3s\t\t=> ").append(iso3s).append("\n");
-        sb.append("uids\t\t=> ").append(uids).append("\n");
+        sb.append("firstDate => ").append(firstDate).append("\n");
+        sb.append("lastDate  => ").append(lastDate).append("\n");
+        sb.append("countries => List of ").append(countries.size()).append(" countries.\n");
+        sb.append("states    => List of ").append(states.size()).append(" states.\n");
+        sb.append("cities    => List of ").append(cities.size()).append(" cities.\n");
+        sb.append("iso3s     => List of ").append(iso3s.size()).append(" iso3s.\n");
+        sb.append("uids      => List of ").append(uids.size()).append(" uids.\n");
         return sb.toString();
     }
 

@@ -37,10 +37,10 @@ first_date = 2020-01-22 00:00:00
 last_date = 2020-04-07 00:00:00
 
 Index of the statistics collection.
-SON([('v', 2), ('key', SON([('_id', 1)])), ('name', '_id_'), ('ns', 'coronavirus.statistics')])
-SON([('v', 2), ('key', SON([('country', 1), ('state', 1), ('city', 1)])), ('name', 'country_1_state_1_city_1'), ('ns', 'coronavirus.statistics')])
-SON([('v', 2), ('key', SON([('country_iso3', 1)])), ('name', 'country_iso3_1'), ('ns', 'coronavirus.statistics')])
-SON([('v', 2), ('key', SON([('uid', 1)])), ('name', 'uid_1'), ('ns', 'coronavirus.statistics')])
-SON([('v', 2), ('key', SON([('date', 1)])), ('name', 'date_1'), ('ns', 'coronavirus.statistics')])
-SON([('v', 2), ('key', SON([('loc', '2dsphere')])), ('name', 'loc_2dsphere'), ('2dsphereIndexVersion', 3), ('ns', 'coronavirus.statistics')])
+SON([('v', 2), ('key', SON([('_id', 1)])), ('name', '_id_'), ('ns', 'covid19.statistics')])
+SON([('v', 2), ('key', SON([('country', 1), ('state', 1), ('city', 1)])), ('name', 'country_1_state_1_city_1'), ('ns', 'covid19.statistics')])
+SON([('v', 2), ('key', SON([('country_iso3', 1)])), ('name', 'country_iso3_1'), ('ns', 'covid19.statistics')])
+SON([('v', 2), ('key', SON([('uid', 1)])), ('name', 'uid_1'), ('ns', 'covid19.statistics')])
+SON([('v', 2), ('key', SON([('date', 1)])), ('name', 'date_1'), ('ns', 'covid19.statistics')])
+SON([('v', 2), ('key', SON([('loc', '2dsphere')])), ('name', 'loc_2dsphere'), ('2dsphereIndexVersion', 3), ('ns', 'covid19.statistics')])
 ```

@@ -4,8 +4,8 @@ from pymongo import MongoClient
 
 def main():
     client = MongoClient('mongodb+srv://readonly:readonly@covid-19.hip2i.mongodb.net/test?retryWrites=true&w=majority')
-    stats = client.get_database('coronavirus').get_collection('statistics')
-    metadata = client.get_database('coronavirus').get_collection('metadata')
+    stats = client.get_database('covid19').get_collection('statistics')
+    metadata = client.get_database('covid19').get_collection('metadata')
 
     print('Statistics for France, sorted by date descending, limit 20.')
     print_list(stats.find({'country': 'France', 'state': None}).sort('date', pymongo.DESCENDING).limit(15))

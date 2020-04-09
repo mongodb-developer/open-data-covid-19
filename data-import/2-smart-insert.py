@@ -241,13 +241,13 @@ def get_mongodb_client():
 
 
 def mongodb_insert(client, docs):
-    coll = client.get_database('coronavirus').get_collection('statistics')
+    coll = client.get_database('covid19').get_collection('statistics')
     coll.drop()
     return coll.insert_many(docs)
 
 
 def create_indexes(client):
-    coll = client.get_database('coronavirus').get_collection('statistics')
+    coll = client.get_database('covid19').get_collection('statistics')
     coll.create_index([('country', pymongo.ASCENDING), ('state', pymongo.ASCENDING), ('city', pymongo.ASCENDING)])
     coll.create_index('country_iso3')
     coll.create_index('uid')
@@ -256,7 +256,7 @@ def create_indexes(client):
 
 
 def create_metadata(client):
-    coll = client.get_database('coronavirus').get_collection('statistics')
+    coll = client.get_database('covid19').get_collection('statistics')
     countries = list(coll.distinct('country'))
     states = list(coll.distinct('state'))
     cities = list(coll.distinct('city'))
@@ -264,7 +264,7 @@ def create_metadata(client):
     uids = list(coll.distinct('uid'))
     dates = list(coll.aggregate([{'$sort': {'date': 1}}, {'$group': {'_id': None, 'first': {'$first': '$date'}, 'last': {'$last': '$date'}}}, {'$project': {'_id': 0}}]))[0]
 
-    metadata_coll = client.get_database('coronavirus').get_collection('metadata')
+    metadata_coll = client.get_database('covid19').get_collection('metadata')
     metadata_coll.delete_one({'_id': 'metadata'})
     metadata_coll.insert_one(
         {'_id': 'metadata', 'countries': countries, 'states': states, 'cities': cities, 'iso3s': iso3s, 'uids': uids, 'first_date': dates['first'], 'last_date': dates['last']})

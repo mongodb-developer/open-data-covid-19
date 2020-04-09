@@ -6,7 +6,7 @@ import java.util.Objects;
 public class Coordinate {
 
     private String type;
-    private List<String> coordinates;
+    private List<Double> coordinates;
 
     public String getType() {
         return type;
@@ -16,11 +16,11 @@ public class Coordinate {
         this.type = type;
     }
 
-    public List<String> getCoordinates() {
+    public List<Double> getCoordinates() {
         return coordinates;
     }
 
-    public void setCoordinates(List<String> coordinates) {
+    public void setCoordinates(List<Double> coordinates) {
         this.coordinates = coordinates;
     }
 

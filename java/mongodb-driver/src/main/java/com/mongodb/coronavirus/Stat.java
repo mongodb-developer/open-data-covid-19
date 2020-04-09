@@ -6,13 +6,13 @@ import org.bson.types.ObjectId;
 import java.util.Date;
 import java.util.Objects;
 
-public class Statistic {
+public class Stat {
 
     private ObjectId id;
-    private String uid;
+    private Integer uid;
     private String country;
-    @BsonProperty("combined_name")
-    private String countryCode;
+    @BsonProperty("country_code")
+    private Integer countryCode;
     @BsonProperty("country_iso2")
     private String countryIso2;
     @BsonProperty("country_iso3")
@@ -37,11 +37,11 @@ public class Statistic {
         this.id = id;
     }
 
-    public String getUid() {
+    public Integer getUid() {
         return uid;
     }
 
-    public void setUid(String uid) {
+    public void setUid(Integer uid) {
         this.uid = uid;
     }
 
@@ -53,11 +53,11 @@ public class Statistic {
         this.country = country;
     }
 
-    public String getCountryCode() {
+    public Integer getCountryCode() {
         return countryCode;
     }
 
-    public void setCountryCode(String countryCode) {
+    public void setCountryCode(Integer countryCode) {
         this.countryCode = countryCode;
     }
 
@@ -186,17 +186,17 @@ public class Statistic {
             return true;
         if (o == null || getClass() != o.getClass())
             return false;
-        Statistic statistic = (Statistic) o;
-        return Objects.equals(id, statistic.id) && Objects.equals(uid, statistic.uid) && Objects.equals(country,
-                                                                                                        statistic.country) && Objects
-                .equals(countryCode, statistic.countryCode) && Objects.equals(countryIso2,
-                                                                              statistic.countryIso2) && Objects.equals(
-                countryIso3, statistic.countryIso3) && Objects.equals(state, statistic.state) && Objects.equals(city,
-                                                                                                                statistic.city) && Objects
-                .equals(combinedName, statistic.combinedName) && Objects.equals(confirmed, statistic.confirmed) && Objects.equals(
-                deaths, statistic.deaths) && Objects.equals(recovered, statistic.recovered) && Objects.equals(population,
-                                                                                                              statistic.population) && Objects
-                .equals(date, statistic.date) && Objects.equals(fips, statistic.fips) && Objects.equals(loc, statistic.loc);
+        Stat stat = (Stat) o;
+        return Objects.equals(id, stat.id) && Objects.equals(uid, stat.uid) && Objects.equals(country,
+                                                                                              stat.country) && Objects
+                .equals(countryCode, stat.countryCode) && Objects.equals(countryIso2,
+                                                                         stat.countryIso2) && Objects.equals(
+                countryIso3, stat.countryIso3) && Objects.equals(state, stat.state) && Objects.equals(city,
+                                                                                                      stat.city) && Objects
+                .equals(combinedName, stat.combinedName) && Objects.equals(confirmed, stat.confirmed) && Objects.equals(
+                deaths, stat.deaths) && Objects.equals(recovered, stat.recovered) && Objects.equals(population,
+                                                                                                    stat.population) && Objects
+                .equals(date, stat.date) && Objects.equals(fips, stat.fips) && Objects.equals(loc, stat.loc);
     }
 
     @Override

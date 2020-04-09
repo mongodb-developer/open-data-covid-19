@@ -17,7 +17,7 @@ Follow these steps to import the clean dataset:
 
 > Note:
 > - You can rerun these scripts daily to get the latest version in your DB.
-> - This script writes to the database `coronavirus` and will be dropped some of its content.
+> - This script writes to the database `covid19` and will be dropped some of its content.
 > - Don't forget the quotes to avoid surprises and of course replace `<username>`, `<password>` and `<your-cluster>` with the correct values.
 > - Follow this link if you want to create your own [Free MongoDB Atlas cluster online](http://bit.ly/mongodbatlas).
 
