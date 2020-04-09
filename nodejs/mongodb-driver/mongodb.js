@@ -1,18 +1,3 @@
-# NodeJS & MongoDB Driver Code Sample
-
-## Quick Start
-
-Next, inside the project, you need to install the project's various NPM dependencies:
-
-    npm install
-
-You should now be ready to make a query on the Open Covid Data Cluster:
-
-    npm start
-
-## How to Connect
-
-```
 const MongoClient = require("mongodb").MongoClient;
 
 const uri =
@@ -29,6 +14,7 @@ client.connect((err) => {
   // find the latest 15 cases from France
   statistics
     .find({ country: "France" })
+    .sort([["a", 1]])
     .limit(15)
     .toArray(function (err, docs) {
       if (err) {
@@ -38,10 +24,3 @@ client.connect((err) => {
       client.close();
     });
 });
-```
-
-#### [Apache 2.0](./LICENSE)
-
-## Related Links
-
-- [MongoDB Node Driver Docs)](http://mongodb.github.io/node-mongodb-native/)
