@@ -1,14 +1,31 @@
 # Python & pymongo Code Sample
 
-To run this code sample, just run:
+This code requires Python 3.6+ to work.
+
+To run this code, create a virtual environment and install the project requirements into it:
+
+```bash
+# On Linux & OSX:
+# (On Debian & Ubuntu linux, you may need to `apt install python-venv` first.)
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+
+# On Windows:
+python -m venv venv
+venv\Scripts\activate
+pip install -r requirements.txt
+```
+
+Once you've installed the dependencies, you can run the code sample as follows:
 
 ```sh
-python3 mongodb.py 
+python3 mongodb.py
 ```
 
 The output should look like this:
 
-```
+```txt
 Statistics for France, sorted by date descending, limit 20.
 {'_id': ObjectId('5e8d9776f8d56d691ab44692'), 'uid': 250, 'country_iso2': 'FR', 'country_iso3': 'FRA', 'country_code': 250, 'country': 'France', 'combined_name': 'France', 'population': 65273512, 'loc': {'type': 'Point', 'coordinates': [2.2137, 46.2276]}, 'date': datetime.datetime(2020, 4, 7, 0, 0), 'confirmed': 109069, 'deaths': 10328, 'recovered': 19337}
 {'_id': ObjectId('5e8d9776f8d56d691ab44691'), 'uid': 250, 'country_iso2': 'FR', 'country_iso3': 'FRA', 'country_code': 250, 'country': 'France', 'combined_name': 'France', 'population': 65273512, 'loc': {'type': 'Point', 'coordinates': [2.2137, 46.2276]}, 'date': datetime.datetime(2020, 4, 6, 0, 0), 'confirmed': 98010, 'deaths': 8911, 'recovered': 17250}

@@ -19,7 +19,7 @@ def main():
 
 def print_doc(doc):
     for k, v in doc.items():
-        print(k, '=', v)
+        print(f"{k}={v}")
 
 
 def print_list(docs):
