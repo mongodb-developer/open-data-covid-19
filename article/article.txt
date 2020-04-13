@@ -131,11 +131,24 @@ How to access the John Hopkins University Covid-19 Data
    If you would prefer to host the data yourself, the scripts required to download and transform the JHU data are open-source. You can `view them and instructions for how to use them on our GitHub repository <https://github.com/mongodb-developer/open-data-covid-19/tree/master/data-import>`_. 
    
 
-   Demos
-   -------------------------
+   Get Started
+   -----------
 
-   .. * Charts
-      * Compass
+   You can begin exploring the data right away without any MongoDB or programming experience using `Charts <https://www.mongodb.com/products/charts>`_ or `Compass <https://www.mongodb.com/products/compass>`_.
+
+   With `Charts <https://www.mongodb.com/products/charts>`_, you can create visualisations of the data using any of the pre-built graphs and charts. You can then `arrange this into a unique dashboard <https://charts.mongodb.com/charts-coronavirus-lwlvn/public/dashboards/5e7a3667-c25a-4c3c-8ba2-5f5d6910e339>`_, or embed the charts in your pages or blogs.
+
+   .. TODO: 
+      Max, can you embed the "confirmed cases" map 
+      and "confirmed cases growth" chart from your dashboard?
+
+   `Compass <https://www.mongodb.com/products/compass>`_ allows you to dig deeper into the data using the `MongoDB Query Language <https://docs.mongodb.com/manual/tutorial/query-documents/`_> or via the `Aggregation Pipeline <https://docs.mongodb.com/manual/core/aggregation-pipeline/>`_ visual editor. Perform a range of operations on the data, `including mathematical, comparison and groupings <https://docs.mongodb.com/manual/meta/aggregation-quick-reference/#operator-expressions>`_. Create documents which provide unique insights and interpretations. You can use the output from your pipelines as `data-sources for your Charts <https://docs.mongodb.com/charts/saas/data-sources/>`_.
+
+   .. image:: /images/compass-covid19-screencast.gif
+         :alt: Screencast showing some of the features of MongoDB Compass for exploring Covid-19 Data
+   
+   Of course, because we store the data in MongoDB, you can also access it via the `MongoDB Shell <https://docs.mongodb.com/manual/mongo/>`_ or using `any of our drivers <https://docs.mongodb.com/drivers/>`_. We've included examples below for `Java <https://docs.mongodb.com/drivers/java/>`_, `Node.js <https://docs.mongodb.com/drivers/node/>`_, and `Python <https://docs.mongodb.com/drivers/python/>`_ to get you started.
+
 
    Accessing the Data with Java
    ----------------------------
@@ -149,7 +162,8 @@ How to access the John Hopkins University Covid-19 Data
 
 .. summary::
 
-   .. * Encouragement for people to connect to the dataset and try it out
-      * Request for feedback
-      * A rough outline of future plans
+   We see the value and importance of making this data as readily available to everyone as possible, so we're not stopping here. Over the coming days, we'll be adding a GraphQL and REST API, as well as making the data available within Excel and Google Sheets.
 
+   We've also launched an `Atlas credits program <https://www.mongodb.com/blog/post/helping-developers-tackle-covid19>`_ for anyone working on detecting, understanding, and stopping the spread of COVID-19.
+
+   If you have any questions, suggestions, or would like any assistance working with the data, we're always available on the `community forums <https://community.mongodb.com/>`_. You can also reach out to `Aaron <https://twitter.com/aaronbassett>`_, `Joe <https://twitter.com/JoeKarlsson1>`_, `Mark <https://twitter.com/judy2k>`_, and `Max <https://twitter.com/MBeugnet>`_ directly on Twitter.
