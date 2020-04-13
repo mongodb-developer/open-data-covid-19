@@ -4,14 +4,17 @@ import pymongo
 from pymongo import MongoClient
 from tabulate import tabulate
 
+EARTH_RADIUS = 6371.0
+MDB_URL = "mongodb+srv://readonly:readonly@covid-19.hip2i.mongodb.net/test?retryWrites=true&w=majority"
+
 
 def main():
-    client = MongoClient(
-        "mongodb+srv://readonly:readonly@covid-19.hip2i.mongodb.net/test?retryWrites=true&w=majority"
-    )
-    stats = client.get_database("covid19").get_collection("statistics")
-    metadata = client.get_database("covid19").get_collection("metadata")
+    client = MongoClient(MDB_URL)
+    db = client.get_database("covid19")
+    stats = db.get_collection("statistics")
+    metadata = db.get_collection("metadata")
 
+    # Get some results for the UK:
     print("Most recent 10 statistics for the UK:")
     results = (
         stats.find({"country": "United Kingdom", "state": None})
@@ -19,6 +22,32 @@ def main():
         .limit(10)
     )
     print_table(["date", "confirmed", "deaths"], results)
+
+    # Get the last date loaded:
+    meta = metadata.find_one()
+    last_date = meta["last_date"]
+
+    # Show the 5 locations with the most recovered cases:
+    results = (
+        stats.find({"date": last_date}).sort("recovered", pymongo.DESCENDING).limit(5)
+    )
+    print_table(["combined_name", "recovered"], results)
+
+    # Confirmed cases for all countries within 500km of Paris:
+    print(
+        "\nThe last day's confirmed cases for all the countries within 500km of Paris:"
+    )
+    results = stats.find(
+        {
+            "date": last_date,
+            "loc": {
+                "$geoWithin": {
+                    "$centerSphere": [[2.341908, 48.860199], 500.0 / EARTH_RADIUS]
+                }
+            },
+        }
+    )
+    print_table(["combined_name", "confirmed"], results)
 
 
 def print_table(doc_keys, search_results, headers=None):
