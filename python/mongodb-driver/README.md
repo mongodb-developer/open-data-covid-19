@@ -20,7 +20,7 @@ pip install -r requirements.txt
 Once you've installed the dependencies, you can run the code sample as follows:
 
 ```sh
-python3 mongodb.py
+python3 example_queries.py
 ```
 
 The output should look like this:
