@@ -15,7 +15,7 @@ def main():
     metadata = db.get_collection("metadata")
 
     # Get some results for the UK:
-    print("Most recent 10 statistics for the UK:")
+    print("\nMost recent 10 statistics for the UK:")
     results = (
         stats.find({"country": "United Kingdom", "state": None})
         .sort("date", pymongo.DESCENDING)
@@ -28,6 +28,7 @@ def main():
     last_date = meta["last_date"]
 
     # Show the 5 locations with the most recovered cases:
+    print("\nThe last day's highest reported recoveries:")
     results = (
         stats.find({"date": last_date}).sort("recovered", pymongo.DESCENDING).limit(5)
     )
