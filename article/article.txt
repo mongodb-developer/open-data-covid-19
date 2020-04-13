@@ -1,0 +1,155 @@
+:template: devhub-article
+
+.. ---------------------------------------------------------------
+.. META FIELDS FOR SEO / SOCIAL
+.. ---------------------------------------------------------------
+
+.. meta-description:: 
+
+   Making the John Hopkins University Covid 19 Data open and accessible to all with MongoDB
+
+.. twitter::
+   :site: @mongodb
+   :creator: @MBeugnet, @judy2k, @JoeKarlsson1, @aaronbassett
+   :title: Covid 19 Data - Access the data via MongoDB, GraphQL, REST, SQL
+   :image: </path/to/image>
+
+   Making the John Hopkins University Covid 19 Data open and accessible to all with MongoDB
+
+.. ---------------------------------------------------------------
+.. ARTICLE METADATA FIELDS (TO POPULATE FILTERS AND ARTICLE PAGE)
+.. ---------------------------------------------------------------
+
+.. include:: /includes/authors/lastname-firstname.rst
+
+.. pubdate:: 2019-01-01
+
+.. type:: article
+
+.. level:: intermediate
+
+.. tags:: 
+
+   * covid-19
+   * data
+
+.. languages::
+
+   * nodejs
+   * java
+   * python
+   * SQL
+
+.. products::
+
+   * MongoDB
+   * Atlas
+
+.. atf-image:: /img/heros/how-to-write-an-article.png
+
+
+.. ---------------------------------------------------------------
+.. ARTICLE CONTENT
+.. ---------------------------------------------------------------
+
+=======================================================
+How to access the John Hopkins University Covid-19 Data
+=======================================================
+
+.. introduction::
+
+   As the Covid-19 pandemic has swept the globe the work of `JHU (John Hopkins University) and their Covid-19 dashboard <https://coronavirus.jhu.edu/map.html>`_ has become vitally important in keeping people informed about the progress of the virus in their communities, in their countries, and in the world in general.
+
+   JHU not only publishes their dashboard, but `they make the data powering it freely available for anyone to use <https://github.com/CSSEGISandData/COVID-19>`_. However, this data is not in a format that is easy to consume. At MongoDB, we've been working with this data since it was first published while developing our `Charts dashboard <>`_. Now we're making `our more accessible version of the JHU data <https://github.com/mongodb-developer/open-data-covid-19>`_ freely available for anyone to use.
+
+   We have not modified the data in any way. What we have done is structured it better and made it easier to query by placing it within a MongoDB Atlas. 
+
+.. content::
+
+   Where do we get the data?
+   -------------------------
+
+   All data is from JHU, they source their data from the World Health Organization, the National Health Commission of the People’s Republic of China, the United States Centre for Disease Control, the Australia Government Department of Health, the European Centre for Disease Prevention and Control, and many others. You can read the `full list on their GitHub repository <https://github.com/CSSEGISandData/COVID-19>`_. 
+
+   Some of these sources provide a higher level of detail than others, so we have split the data into two collections; the global time-series, and the US time-series. 
+
+   .. code-block:: javascript
+
+      {
+         "_id" : ObjectId("5e8cd51700c98085a07a8d25"),
+         "uid" : 250,
+         "country_iso2" : "FR",
+         "country_iso3" : "FRA",
+         "country_code" : 250,
+         "country" : "France",
+         "combined_name" : "France",
+         "population" : 65273512,
+         "loc" : {
+            "type" : "Point",
+            "coordinates" : [
+               2.2137,
+               46.2276
+            ]
+         },
+         "date" : ISODate("2020-04-06T00:00:00Z"),
+         "confirmed" : 98010,
+         "deaths" : 8911,
+         "recovered" : 17250
+      }
+
+
+   .. code-block:: javascript
+
+      {
+         "_id" : ObjectId("5e8cd51800c98085a07ce9e1"),
+         "uid" : 84036115,
+         "country_iso2" : "US",
+         "country_iso3" : "USA",
+         "country_code" : 840,
+         "fips" : 36115,
+         "city" : "Washington",
+         "state" : "New York",
+         "country" : "US",
+         "combined_name" : "Washington, New York, US",
+         "population" : 61204,
+         "loc" : {
+            "type" : "Point",
+            "coordinates" : [
+               -73.4304,
+               43.3115
+            ]
+         },
+         "date" : ISODate("2020-04-06T00:00:00Z"),
+         "confirmed" : 19,
+         "deaths" : 1
+      }
+
+   To transform the JHU data into the schemas above, we perform two distinct steps. First, we import the raw data into MongoDB "as-is". This raw data is also freely available, you can view it by connecting to this MongoDB Atlas database [Connection string]. Once we have this raw data in MongoDB, we perform a series of transformations to restructure it into the more usable schema you see above. These transformations consist of:
+
+   .. TODO: Add transformation steps
+
+   If you would prefer to host the data yourself, the scripts required to download and transform the JHU data are open-source. You can `view them and instructions for how to use them on our GitHub repository <https://github.com/mongodb-developer/open-data-covid-19/tree/master/data-import>`_. 
+   
+
+   Demos
+   -------------------------
+
+   .. * Charts
+      * Compass
+
+   Accessing the Data with Java
+   ----------------------------
+
+   Accessing the Data with Node.js
+   -------------------------------
+
+   Accessing the Data with Python
+   ------------------------------
+
+
+.. summary::
+
+   .. * Encouragement for people to connect to the dataset and try it out
+      * Request for feedback
+      * A rough outline of future plans
+
