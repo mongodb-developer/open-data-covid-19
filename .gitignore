@@ -1,4 +1,5 @@
 .idea/
 jhu/
 target/
+node_modules/
 *.iml

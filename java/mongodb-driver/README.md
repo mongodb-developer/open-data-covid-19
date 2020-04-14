@@ -13,3 +13,5 @@ To run this code sample, simply run:
 ```sh
 mvn compile exec:java -Dexec.mainClass="com.mongodb.coronavirus.MongoDB"
 ```
+
+If you don't have Maven and Java 8+ setup correctly, but you have Docker, you can run the `test-with-docker.sh` script instead.
