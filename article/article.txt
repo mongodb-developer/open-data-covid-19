@@ -106,65 +106,37 @@ How to access the John Hopkins University Covid-19 Data
    We produced two different databases in our cluster.
 
    - ``covid19jhu`` contains the raw CSV files imported with the ``mongoimport`` tool,
-   - ``covid19`` contains the same dataset but with a clean MongoDB schema design with all the good practises we are recommending.
+   - ``covid19`` contains the same dataset but with a clean MongoDB schema design with all the good practices we are recommending.
 
-   Here is an example of the documents in the ``covid19`` database:
-
-   .. code-block:: javascript
-
-      {
-         "_id" : ObjectId("5e8cd51700c98085a07a8d25"),
-         "uid" : 250,
-         "country_iso2" : "FR",
-         "country_iso3" : "FRA",
-         "country_code" : 250,
-         "country" : "France",
-         "combined_name" : "France",
-         "population" : 65273512,
-         "loc" : {
-            "type" : "Point",
-            "coordinates" : [
-               2.2137,
-               46.2276
-            ]
-         },
-         "date" : ISODate("2020-04-06T00:00:00Z"),
-         "confirmed" : 98010,
-         "deaths" : 8911,
-         "recovered" : 17250
-      }
-
+   Here is an example of a document in the ``covid19`` database:
 
    .. code-block:: javascript
 
       {
-         "_id" : ObjectId("5e8cd51800c98085a07ce9e1"),
-         "uid" : 84036115,
-         "country_iso2" : "US",
-         "country_iso3" : "USA",
-         "country_code" : 840,
-         "fips" : 36115,
-         "city" : "Washington",
-         "state" : "New York",
-         "country" : "US",
-         "combined_name" : "Washington, New York, US",
-         "population" : 61204,
-         "loc" : {
-            "type" : "Point",
-            "coordinates" : [
-               -73.4304,
-               43.3115
-            ]
-         },
-         "date" : ISODate("2020-04-06T00:00:00Z"),
-         "confirmed" : 19,
-         "deaths" : 1
+        "_id" : ObjectId("5e957bfcbd78b2f11ba349bf"),
+        "uid" : 312,
+        "country_iso2" : "GP",
+        "country_iso3" : "GLP",
+        "country_code" : 312,
+        "state" : "Guadeloupe",
+        "country" : "France",
+        "combined_name" : "Guadeloupe, France",
+        "population" : 400127,
+        "loc" : {
+          "type" : "Point",
+          "coordinates" : [ -61.551, 16.265 ]
+        },
+        "date" : ISODate("2020-04-13T00:00:00Z"),
+        "confirmed" : 143,
+        "deaths" : 8,
+        "recovered" : 67
       }
 
-   The documents above were obtained by joining together the file ``UID_ISO_FIPS_LookUp_Table.csv`` and the CSV files time series you can find in `this folder <https://github.com/CSSEGISandData/COVID-19/tree/master/csse_covid_19_data/csse_covid_19_time_series>`__.
+   The document above was obtained by joining together the file ``UID_ISO_FIPS_LookUp_Table.csv`` and the CSV files time series you can find in `this folder <https://github.com/CSSEGISandData/COVID-19/tree/master/csse_covid_19_data/csse_covid_19_time_series>`__.
+
+   Some fields might not exist in all the documents because they are not relevant or are just not provided by `JHU <https://www.jhu.edu/>`__. If you want more details, run a schema analysis with `MongoDB Compass <https://www.mongodb.com/products/compass>`__ on the `covid19.statistics` collection.
 
    If you would prefer to host the data yourself, the scripts required to download and transform the JHU data are open-source. You can `view them and instructions for how to use them on our GitHub repository <https://github.com/mongodb-developer/open-data-covid-19/tree/master/data-import>`__.
-
 
    Get Started
    -----------
@@ -183,7 +155,6 @@ How to access the John Hopkins University Covid-19 Data
 
       If you want to create your own MongoDB Charts dashboard, you will need to setup your own `Free MongoDB Atlas <https://www.mongodb.com/cloud/atlas>`__ cluster and import the dataset in your cluster using the `import scripts <https://github.com/mongodb-developer/open-data-covid-19/tree/master/data-import>`__.
 
-      You can also use the code MAXIME200 to get $200 of MongoDB Atlas credit just in case you would like to try more advanced features.
 
    `Compass <https://www.mongodb.com/products/compass>`__ allows you to dig deeper into the data using the `MongoDB Query Language <https://docs.mongodb.com/manual/tutorial/query-documents/>`__ or via the `Aggregation Pipeline <https://docs.mongodb.com/manual/core/aggregation-pipeline/>`__ visual editor. Perform a range of operations on the data, `including mathematical, comparison and groupings <https://docs.mongodb.com/manual/meta/aggregation-quick-reference/#operator-expressions>`__. Create documents which provide unique insights and interpretations. You can use the output from your pipelines as `data-sources for your Charts <https://docs.mongodb.com/charts/saas/data-sources/>`__.
 
