@@ -167,7 +167,7 @@ How to access the John Hopkins University Covid-19 Data
 
       mongo "mongodb+srv://covid-19.hip2i.mongodb.net/test"  --username readonly --password readonly
 
-   For MongoDB Compass or your driver, you can use this connexion string.
+   For MongoDB Compass or your driver, you can use this connection string.
 
    .. code-block::
 
@@ -396,10 +396,22 @@ How to access the John Hopkins University Covid-19 Data
 
    Here's an example of a visualisation produced in a few clicks with Tableau:
 
-   .. image:: images/map.png
+   .. image:: images/map-tableau.png
+      :alt: Covid-19 World map in Tableau.
 
    Tableau is a powerful data visualisation and dashboard tool, and can be connected to our COVID-19 data in a few steps.
    We've written a `short tutorial <https://github.com/mongodb-developer/open-data-covid-19/blob/master/tableau/README.md>`__ to get you up and running.
+
+   Accessing the Data with any SQL tool
+   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+   As mentioned above, the `Atlas BI Connector <https://docs.atlas.mongodb.com/bi-connection/>`__ is activated so you can connect any SQL tool to this cluster using the following connection information:
+
+   - Server: covid-19-biconnector.hip2i.mongodb.net,
+   - Port: 27015,
+   - Database: covid19 or covid19jhu (depends which version of the dataset you want to see),
+   - Username: readonly or readonly?source=admin,
+   - Password: readonly.
 
 .. summary::
 
