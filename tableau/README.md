@@ -18,11 +18,11 @@ Once you have the necessary components installed,  fill in the form as follows:
 
 The details are:
 
-Server: covid-19-biconnector.hip2i.mongodb.net
-Port: 27015
-Database: covid19
-Username: readonly
-Password: readonly
+Server: covid-19-biconnector.hip2i.mongodb.net<br/>
+Port: 27015<br/>
+Database: covid19<br/>
+Username: readonly<br/>
+Password: readonly<br/>
 
 Once you have connected to the data source, you'll see various tables listed on the left-hand side. Unfortunately, because Tableau works with tables instead of MongoDB's rich documents, we have to flatten the documents into tables which can be rejoined within Tableau.
 
