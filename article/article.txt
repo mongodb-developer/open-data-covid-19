@@ -385,21 +385,21 @@ How to access the John Hopkins University Covid-19 Data
       if __name__ == "__main__":
           main()
 
-    Accessing the Data with Business Intelligence Tools
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   Accessing the Data with Business Intelligence Tools
+   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    You can get lots of value from the dataset without any programming at all.
-    We've enabled the `Atlas BI Connector <https://docs.atlas.mongodb.com/bi-connection/>`_, which exposes an SQL interface to MongoDB's document structure.
-    This means you can use data analysis and dashboarding tools like `Tableau <https://www.tableau.com/support/releases/desktop/10.3>`__,
-    `Qlik Sense <https://www.qlik.com/us/products/qlik-sense>`__,
-    and even `MySQL Workbench <https://www.mysql.com/products/workbench/>`__ to analyze, visualise and extract understanding from the data.
+   You can get lots of value from the dataset without any programming at all.
+   We've enabled the `Atlas BI Connector <https://docs.atlas.mongodb.com/bi-connection/>`__, which exposes an SQL interface to MongoDB's document structure.
+   This means you can use data analysis and dashboarding tools like `Tableau <https://www.tableau.com/support/releases/desktop/10.3>`__,
+   `Qlik Sense <https://www.qlik.com/us/products/qlik-sense>`__,
+   and even `MySQL Workbench <https://www.mysql.com/products/workbench/>`__ to analyze, visualise and extract understanding from the data.
 
-    Here's an example of a visualisation produced in a few clicks with Tableau:
+   Here's an example of a visualisation produced in a few clicks with Tableau:
 
-    ![A map illustrating the number of confirmed cases in each country](images/map.png)
+   .. image:: images/map.png
 
-    Tableau is a powerful data visualisation and dashboard tool, and can be connected to our COVID-19 data in a few steps.
-    We've written a `short tutorial <https://github.com/mongodb-developer/open-data-covid-19/blob/master/tableau/README.md>`__ to get you up and running.
+   Tableau is a powerful data visualisation and dashboard tool, and can be connected to our COVID-19 data in a few steps.
+   We've written a `short tutorial <https://github.com/mongodb-developer/open-data-covid-19/blob/master/tableau/README.md>`__ to get you up and running.
 
 .. summary::
 
