@@ -14,7 +14,7 @@ client.connect((err) => {
   // // Query to get the last 5 entries for France (continent only)
   statistics
     .find({ country: "France" })
-    .sort([["a", -1]])
+    .sort([["date", -1]])
     .limit(15)
     .toArray(function (err, docs) {
       if (err) {
