@@ -161,7 +161,7 @@ How to access the John Hopkins University Covid-19 Data
    .. image:: /images/compass-covid19-screencast.gif
       :alt: Screencast showing some of the features of MongoDB Compass for exploring Covid-19 Data
 
-   Of course, because we store the data in MongoDB, you can also access it via the `MongoDB Shell <https://docs.mongodb.com/manual/mongo/>`__ or using `any of our drivers <https://docs.mongodb.com/drivers/>`__. We've included examples below for `Java <https://docs.mongodb.com/drivers/java/>`__, `Node.js <https://docs.mongodb.com/drivers/node/>`__, and `Python <https://docs.mongodb.com/drivers/python/>`__ to get you started. Of course, you only have a read only access.
+   Because we store the data in MongoDB, you can also access it via the `MongoDB Shell <https://docs.mongodb.com/manual/mongo/>`__ or using `any of our drivers <https://docs.mongodb.com/drivers/>`__. We've limited access to these collections to 'read-only'. You can find the connection strings for the shell and Compass below, as well as driver examples for for `Java <https://docs.mongodb.com/drivers/java/>`__, `Node.js <https://docs.mongodb.com/drivers/node/>`__, and `Python <https://docs.mongodb.com/drivers/python/>`__ to get you started.
 
    .. code-block:: shell
 
@@ -384,6 +384,22 @@ How to access the John Hopkins University Covid-19 Data
 
       if __name__ == "__main__":
           main()
+
+    Accessing the Data with Business Intelligence Tools
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+    You can get lots of value from the dataset without any programming at all.
+    We've enabled the `Atlas BI Connector <https://docs.atlas.mongodb.com/bi-connection/>`_, which exposes an SQL interface to MongoDB's document structure.
+    This means you can use data analysis and dashboarding tools like `Tableau <https://www.tableau.com/support/releases/desktop/10.3>`__,
+    `Qlik Sense <https://www.qlik.com/us/products/qlik-sense>`__,
+    and even `MySQL Workbench <https://www.mysql.com/products/workbench/>`__ to analyze, visualise and extract understanding from the data.
+
+    Here's an example of a visualisation produced in a few clicks with Tableau:
+
+    ![A map illustrating the number of confirmed cases in each country](images/map.png)
+
+    Tableau is a powerful data visualisation and dashboard tool, and can be connected to our COVID-19 data in a few steps.
+    We've written a `short tutorial <https://github.com/mongodb-developer/open-data-covid-19/blob/master/tableau/README.md>`__ to get you up and running.
 
 .. summary::
 
