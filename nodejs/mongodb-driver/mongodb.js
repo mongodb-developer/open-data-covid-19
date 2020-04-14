@@ -11,16 +11,57 @@ const client = new MongoClient(uri, {
 client.connect((err) => {
   const statistics = client.db("covid19").collection("statistics");
 
-  // find the latest 15 cases from France
+  // // Query to get the last 5 entries for France (continent only)
   statistics
     .find({ country: "France" })
-    .sort([["a", 1]])
+    .sort([["date", -1]])
     .limit(15)
     .toArray(function (err, docs) {
       if (err) {
         console.error(err);
       }
       console.log(docs);
-      client.close();
+    });
+
+  //Query to get the last day data (limited to 15 docs here).
+  statistics
+    .find({
+      date: {
+        $lt: new Date(),
+        $gt: new Date(new Date().setDate(new Date().getDate() - 2)),
+      },
+    })
+    .limit(15)
+    .toArray((err, docs) => {
+      if (err) {
+        console.error(err);
+      }
+      console.log(docs);
+    });
+
+  // Query to get the last day data for all the countries within 500km of Paris.
+  const lon = 2.341908;
+  const lat = 48.860199;
+  const earthRadius = 6371; // km
+  const searchRadius = 500; // km
+
+  statistics
+    .find({
+      loc: {
+        $geoWithin: {
+          $centerSphere: [[lon, lat], searchRadius / earthRadius],
+        },
+      },
+      date: {
+        $lt: new Date(),
+        $gt: new Date(new Date().setDate(new Date().getDate() - 2)),
+      },
+    })
+    .limit(5)
+    .toArray((err, docs) => {
+      if (err) {
+        console.error(err);
+      }
+      console.log(docs);
     });
 });
