@@ -28,8 +28,6 @@ client.connect((err) => {
   //Query to get the last day data (limited to 5 docs here).
   metadata
     .find()
-    .sort(["date", -1])
-    .limit(1)
     .toArray((err, docs) => {
       if (err) {
         console.error(err);
@@ -55,8 +53,6 @@ client.connect((err) => {
 
   metadata
     .find()
-    .sort(["date", -1])
-    .limit(1)
     .toArray((err, docs) => {
       if (err) {
         console.error(err);
