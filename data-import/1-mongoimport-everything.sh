@@ -7,6 +7,12 @@ do
 done
 wait
 
+for file in jhu/csse_covid_19_data/csse_covid_19_daily_reports_us/*.csv
+do
+  mongoimport --uri "${1}" --collection daily_us --type csv --headerline --file "${file}" &
+done
+wait
+
 for file in jhu/csse_covid_19_data/csse_covid_19_time_series/*.csv
 do
   mongoimport --uri "${1}" --collection "$(basename "${file}" .csv)" --type csv --headerline --file "${file}" &
