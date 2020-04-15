@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"fmt"
-	"log"
 	"os"
 	"strconv"
 	"time"
@@ -62,7 +61,7 @@ func main() {
 	defer cancel()
 	client, err := mongo.Connect(ctx, options.Client().ApplyURI(mdbURL))
 	if err != nil {
-		log.Fatalf("Error initializing MongoDB Client: %v\n", err)
+		panic(fmt.Sprintf("Error initializing MongoDB Client: %v", err))
 	}
 	defer client.Disconnect(ctx)
 
@@ -90,7 +89,7 @@ func recentCountryStats(statistics *mongo.Collection, country string) {
 	findOptions := options.Find().SetSort(bson.D{{"date", -1}}).SetLimit(10)
 	cur, err := statistics.Find(ctx, bson.D{{"country", country}, {"state", nil}}, findOptions)
 	if err != nil {
-		log.Fatal(err)
+		panic(err)
 	}
 	defer cur.Close(ctx)
 	adapter := func(s Statistic) []string {
@@ -101,7 +100,7 @@ func recentCountryStats(statistics *mongo.Collection, country string) {
 			strconv.Itoa(int(s.Deaths)),
 		}
 	}
-	printTable([]string{"Date", "Confirmed", "Recovered", "Deaths"}, cur, ctx, adapter)
+	printTable(ctx, []string{"Date", "Confirmed", "Recovered", "Deaths"}, cur, adapter)
 }
 
 // mostRecentDateLoaded gets the date of the last data loaded into the database
@@ -109,7 +108,7 @@ func recentCountryStats(statistics *mongo.Collection, country string) {
 func mostRecentDateLoaded(metadata *mongo.Collection) time.Time {
 	var meta Metadata
 	if err := metadata.FindOne(context.TODO(), bson.D{}).Decode(&meta); err != nil {
-		log.Fatalf("Error loading metadata document: %v\n", err)
+		panic(fmt.Sprintf("Error loading metadata document: %v", err))
 	}
 	return meta.LastDate
 }
@@ -122,13 +121,13 @@ func highestRecoveries(statistics *mongo.Collection, date time.Time) {
 	defer cancel()
 	cur, err := statistics.Find(ctx, bson.D{{"date", date}}, opts)
 	if err != nil {
-		log.Fatal(err)
+		panic(err)
 	}
 	defer cur.Close(ctx)
 	adapter := func(s Statistic) []string {
 		return []string{s.CombinedName, strconv.Itoa(int(s.Recovered))}
 	}
-	printTable([]string{"Country", "Recovered"}, cur, ctx, adapter)
+	printTable(ctx, []string{"Country", "Recovered"}, cur, adapter)
 }
 
 // Confirmed cases for all countries within radius km of a lon/lat coordinate:
@@ -145,19 +144,19 @@ func confirmedWithinRadius(statistics *mongo.Collection, date time.Time, lon flo
 	defer cancel()
 	cur, err := statistics.Find(ctx, bson.D{{"date", date}, locationExpr})
 	if err != nil {
-		log.Fatal(err)
+		panic(err)
 	}
 	defer cur.Close(ctx)
 	adapter := func(s Statistic) []string {
 		return []string{s.CombinedName, strconv.Itoa(int(s.Confirmed))}
 	}
-	printTable([]string{"Country", "Confirmed"}, cur, ctx, adapter)
+	printTable(ctx, []string{"Country", "Confirmed"}, cur, adapter)
 }
 
 // printTable prints the results of a statistics query in a table.
 // headings provides the heading cell contents
 // mapper is a function which maps Statistic structs to a string array of values to be displayed in the table.
-func printTable(headings []string, cursor *mongo.Cursor, ctx context.Context, mapper func(Statistic) []string) {
+func printTable(ctx context.Context, headings []string, cursor *mongo.Cursor, mapper func(Statistic) []string) {
 	table := tablewriter.NewWriter(os.Stdout)
 	table.SetHeader(headings)
 
@@ -165,13 +164,13 @@ func printTable(headings []string, cursor *mongo.Cursor, ctx context.Context, ma
 		var result Statistic
 		err := cursor.Decode(&result)
 		if err != nil {
-			log.Fatal(err)
+			panic(err)
 		}
 
 		table.Append(mapper(result))
 	}
 	if err := cursor.Err(); err != nil {
-		log.Fatal(err)
+		panic(err)
 	}
 
 	table.Render()
