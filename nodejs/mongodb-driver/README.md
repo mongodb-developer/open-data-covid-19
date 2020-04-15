@@ -40,8 +40,6 @@ client.connect((err) => {
 });
 ```
 
-#### [Apache 2.0](./LICENSE)
-
 ## Related Links
 
-- [MongoDB Node Driver Docs)](http://mongodb.github.io/node-mongodb-native/)
+- [MongoDB Node Driver Docs](http://mongodb.github.io/node-mongodb-native/)
