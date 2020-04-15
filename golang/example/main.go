@@ -66,9 +66,38 @@ func main() {
 	statistics := database.Collection("statistics")
 	metadata := database.Collection("metadata")
 
-	// Get some results for the UK:
+	recentUKStats(statistics)
+
+	// Get the latest date:
+	lastDate := mostRecentDateLoaded(metadata)
+	fmt.Printf("\nLast date loaded: %v\n", lastDate)
+
+	highestRecoveries(statistics, lastDate)
+	confirmedWithinRadius(statistics, lastDate, 2.341908, 48.860199, 500.0)
+}
+
+func confirmedWithinRadius(statistics *mongo.Collection, date time.Time, lat float64, lon float64, radius float64) {
+	center := bson.A{lat, lon}
+
+	// Confirmed cases for all countries within 500km of Paris:
+	fmt.Println("\nThe last day's confirmed cases for all the countries within 500km of Paris:")
+	ctx, _ := context.WithTimeout(context.Background(), 30*time.Second)
+	cur, err := statistics.Find(ctx, bson.D{{"date", date}, {"loc", bson.D{{"$geoWithin", bson.D{
+		{"$centerSphere", bson.A{center, radius / EARTH_RADIUS}}}}}}})
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer cur.Close(ctx)
+	adapter := func(s Statistic) []string {
+		return []string{s.CombinedName, strconv.Itoa(int(s.Confirmed))}
+	}
+	PrintTable([]string{"Country", "Confirmed"}, cur, &ctx, adapter)
+}
+
+func recentUKStats(statistics *mongo.Collection) {
+	/// Get some results for the UK
 	fmt.Println("\nMost recent 10 statistics for the UK:")
-	ctx, _ = context.WithTimeout(context.Background(), 30*time.Second)
+	ctx, _ := context.WithTimeout(context.Background(), 30*time.Second)
 	findOptions := options.Find().SetSort(bson.D{{"date", -1}}).SetLimit(10)
 	cur, err := statistics.Find(ctx, bson.D{{"country", "United Kingdom"}, {"state", nil}}, findOptions)
 	if err != nil {
@@ -83,36 +112,35 @@ func main() {
 			strconv.Itoa(int(s.Deaths)),
 		}
 	}
-	PrintTable([]string{"Date", "Confirmed", "Recovered", "Deaths"}, cur, adapter)
+	PrintTable([]string{"Date", "Confirmed", "Recovered", "Deaths"}, cur, &ctx, adapter)
+}
 
+func mostRecentDateLoaded(metadata *mongo.Collection) time.Time {
 	// Get the latest date:
 	var meta Metadata
 	if err := metadata.FindOne(context.TODO(), bson.D{}).Decode(&meta); err != nil {
 		log.Fatalf("Error loading metadata document: %v\n", err)
 	}
-	lastDate := meta.LastDate
-	fmt.Printf("\nLast date loaded: %v\n", lastDate)
+	return meta.LastDate
+}
 
+func highestRecoveries(statistics *mongo.Collection, date time.Time) {
 	// The last day's highest reported recoveries
 	fmt.Println("\nThe last day's highest reported recoveries:")
 	opts := options.Find().SetSort(bson.D{{"recovered", -1}}).SetLimit(5)
-	cur, err = statistics.Find(context.TODO(), bson.D{{"date", lastDate}}, opts)
-	adapter = func(s Statistic) []string {
+	ctx, _ := context.WithTimeout(context.Background(), 30*time.Second)
+	cur, err := statistics.Find(ctx, bson.D{{"date", date}}, opts)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer cur.Close(ctx)
+	adapter := func(s Statistic) []string {
 		return []string{s.CombinedName, strconv.Itoa(int(s.Recovered))}
 	}
-	PrintTable([]string{"Country", "Recovered"}, cur, adapter)
-
-	// Confirmed cases for all countries within 500km of Paris:
-	fmt.Println("\nThe last day's confirmed cases for all the countries within 500km of Paris:")
-	cur, err = statistics.Find(context.TODO(), bson.D{{"date", lastDate}, {"loc", bson.D{{"$geoWithin", bson.D{
-		{"$centerSphere", bson.A{bson.A{2.341908, 48.860199}, 500.0 / EARTH_RADIUS}}}}}}})
-	adapter = func(s Statistic) []string {
-		return []string{s.CombinedName, strconv.Itoa(int(s.Confirmed))}
-	}
-	PrintTable([]string{"Country", "Confirmed"}, cur, adapter)
+	PrintTable([]string{"Country", "Recovered"}, cur, &ctx, adapter)
 }
 
-func PrintTable(headings []string, cursor *mongo.Cursor, mapper func(Statistic) []string) {
+func PrintTable(headings []string, cursor *mongo.Cursor, ctx *context.Context, mapper func(Statistic) []string) {
 	table := tablewriter.NewWriter(os.Stdout)
 	table.SetHeader(headings)
 
