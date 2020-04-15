@@ -51,7 +51,8 @@ type Statistic struct {
 }
 
 func main() {
-	ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
 	client, err := mongo.Connect(ctx, options.Client().ApplyURI(MDB_URL))
 	if err != nil {
 		log.Fatalf("Error initializing MongoDB Client: %v\n", err)
@@ -68,7 +69,6 @@ func main() {
 
 	recentUKStats(statistics)
 
-	// Get the latest date:
 	lastDate := mostRecentDateLoaded(metadata)
 	fmt.Printf("\nLast date loaded: %v\n", lastDate)
 
@@ -76,12 +76,13 @@ func main() {
 	confirmedWithinRadius(statistics, lastDate, 2.341908, 48.860199, 500.0)
 }
 
+// Confirmed cases for all countries within 500km of Paris:
 func confirmedWithinRadius(statistics *mongo.Collection, date time.Time, lat float64, lon float64, radius float64) {
 	center := bson.A{lat, lon}
 
-	// Confirmed cases for all countries within 500km of Paris:
 	fmt.Println("\nThe last day's confirmed cases for all the countries within 500km of Paris:")
-	ctx, _ := context.WithTimeout(context.Background(), 30*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
 	cur, err := statistics.Find(ctx, bson.D{{"date", date}, {"loc", bson.D{{"$geoWithin", bson.D{
 		{"$centerSphere", bson.A{center, radius / EARTH_RADIUS}}}}}}})
 	if err != nil {
@@ -94,10 +95,11 @@ func confirmedWithinRadius(statistics *mongo.Collection, date time.Time, lat flo
 	PrintTable([]string{"Country", "Confirmed"}, cur, &ctx, adapter)
 }
 
+// Get some results for the UK
 func recentUKStats(statistics *mongo.Collection) {
-	/// Get some results for the UK
 	fmt.Println("\nMost recent 10 statistics for the UK:")
-	ctx, _ := context.WithTimeout(context.Background(), 30*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
 	findOptions := options.Find().SetSort(bson.D{{"date", -1}}).SetLimit(10)
 	cur, err := statistics.Find(ctx, bson.D{{"country", "United Kingdom"}, {"state", nil}}, findOptions)
 	if err != nil {
@@ -115,8 +117,9 @@ func recentUKStats(statistics *mongo.Collection) {
 	PrintTable([]string{"Date", "Confirmed", "Recovered", "Deaths"}, cur, &ctx, adapter)
 }
 
+// mostRecentDateLoaded gets the date of the last data loaded into the database
+// from the 'metadata' collection.
 func mostRecentDateLoaded(metadata *mongo.Collection) time.Time {
-	// Get the latest date:
 	var meta Metadata
 	if err := metadata.FindOne(context.TODO(), bson.D{}).Decode(&meta); err != nil {
 		log.Fatalf("Error loading metadata document: %v\n", err)
@@ -125,10 +128,11 @@ func mostRecentDateLoaded(metadata *mongo.Collection) time.Time {
 }
 
 func highestRecoveries(statistics *mongo.Collection, date time.Time) {
-	// The last day's highest reported recoveries
+	/// The last day's highest reported recoveries
 	fmt.Println("\nThe last day's highest reported recoveries:")
 	opts := options.Find().SetSort(bson.D{{"recovered", -1}}).SetLimit(5)
-	ctx, _ := context.WithTimeout(context.Background(), 30*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
 	cur, err := statistics.Find(ctx, bson.D{{"date", date}}, opts)
 	if err != nil {
 		log.Fatal(err)
