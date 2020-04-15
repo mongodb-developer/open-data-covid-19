@@ -15,8 +15,8 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-const MDB_URL = "mongodb+srv://readonly:readonly@covid-19.hip2i.mongodb.net/covid19?retryWrites=true&w=majority"
-const EARTH_RADIUS = 6371.0
+const mdbURL = "mongodb+srv://readonly:readonly@covid-19.hip2i.mongodb.net/covid19?retryWrites=true&w=majority"
+const earthRadius = 6371.0
 
 // Metadata represents (a subset of) the data stored in the metadata
 // collection in a single document.
@@ -60,10 +60,11 @@ type Statistic struct {
 func main() {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-	client, err := mongo.Connect(ctx, options.Client().ApplyURI(MDB_URL))
+	client, err := mongo.Connect(ctx, options.Client().ApplyURI(mdbURL))
 	if err != nil {
 		log.Fatalf("Error initializing MongoDB Client: %v\n", err)
 	}
+	defer client.Disconnect(ctx)
 
 	// Get references to the main collections:
 	database := client.Database("covid19")
@@ -81,24 +82,7 @@ func main() {
 	confirmedWithinRadius(statistics, lastDate, 2.341908, 48.860199, 500.0)
 }
 
-// Confirmed cases for all countries within radius km of a lat/lon:
-func confirmedWithinRadius(statistics *mongo.Collection, date time.Time, lon float64, lat float64, radius float64) {
-	center := bson.A{lon, lat}
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
-	defer cancel()
-	cur, err := statistics.Find(ctx, bson.D{{"date", date}, {"loc", bson.D{{"$geoWithin", bson.D{
-		{"$centerSphere", bson.A{center, radius / EARTH_RADIUS}}}}}}})
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer cur.Close(ctx)
-	adapter := func(s Statistic) []string {
-		return []string{s.CombinedName, strconv.Itoa(int(s.Confirmed))}
-	}
-	printTable([]string{"Country", "Confirmed"}, cur, ctx, adapter)
-}
-
-// Get some results for a country.
+// recentCountryStats prints the most recent 10 stats for a country.
 // Note that this won't work for "US" because that data is broken down by city & state.
 func recentCountryStats(statistics *mongo.Collection, country string) {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
@@ -130,6 +114,7 @@ func mostRecentDateLoaded(metadata *mongo.Collection) time.Time {
 	return meta.LastDate
 }
 
+// highestRecoveries prints the top 5 countries with the most recoveries.
 func highestRecoveries(statistics *mongo.Collection, date time.Time) {
 	/// The last day's highest reported recoveries
 	opts := options.Find().SetSort(bson.D{{"recovered", -1}}).SetLimit(5)
@@ -144,6 +129,29 @@ func highestRecoveries(statistics *mongo.Collection, date time.Time) {
 		return []string{s.CombinedName, strconv.Itoa(int(s.Recovered))}
 	}
 	printTable([]string{"Country", "Recovered"}, cur, ctx, adapter)
+}
+
+// Confirmed cases for all countries within radius km of a lon/lat coordinate:
+func confirmedWithinRadius(statistics *mongo.Collection, date time.Time, lon float64, lat float64, radius float64) {
+	center := bson.A{lon, lat}
+	locationExpr := bson.E{
+		"loc", bson.D{{
+			"$geoWithin", bson.D{{
+				"$centerSphere", bson.A{center, radius / earthRadius},
+			}},
+		}},
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+	cur, err := statistics.Find(ctx, bson.D{{"date", date}, locationExpr})
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer cur.Close(ctx)
+	adapter := func(s Statistic) []string {
+		return []string{s.CombinedName, strconv.Itoa(int(s.Confirmed))}
+	}
+	printTable([]string{"Country", "Confirmed"}, cur, ctx, adapter)
 }
 
 // printTable prints the results of a statistics query in a table.
