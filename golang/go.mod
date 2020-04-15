@@ -1,4 +1,4 @@
-module mongodb/open-data-covid-19/golang
+module golang_example
 
 go 1.14
 
