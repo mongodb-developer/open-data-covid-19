@@ -140,7 +140,7 @@ func highestRecoveries(statistics *mongo.Collection, date time.Time) {
 
 // printTable prints the results of a statistics query in a table.
 // headings provides the heading cell contents
-// mapper is a funcion which maps Statistic structs to a string array of values to be displayed in the table.
+// mapper is a function which maps Statistic structs to a string array of values to be displayed in the table.
 func printTable(headings []string, cursor *mongo.Cursor, ctx context.Context, mapper func(Statistic) []string) {
 	table := tablewriter.NewWriter(os.Stdout)
 	table.SetHeader(headings)
