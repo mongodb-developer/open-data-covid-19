@@ -13,7 +13,6 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
-	"go.mongodb.org/mongo-driver/mongo/readpref"
 )
 
 const MDB_URL = "mongodb+srv://readonly:readonly@covid-19.hip2i.mongodb.net/covid19?retryWrites=true&w=majority"
@@ -57,21 +56,16 @@ func main() {
 	if err != nil {
 		log.Fatalf("Error initializing MongoDB Client: %v\n", err)
 	}
-	err = client.Ping(ctx, readpref.Primary())
-	if err != nil {
-		log.Fatalf("No Ping!: %v\n", err)
-	}
 
 	// Get references to the main collections:
 	database := client.Database("covid19")
 	statistics := database.Collection("statistics")
 	metadata := database.Collection("metadata")
 
+	// Print some interesting results:
 	recentUKStats(statistics)
-
 	lastDate := mostRecentDateLoaded(metadata)
 	fmt.Printf("\nLast date loaded: %v\n", lastDate)
-
 	highestRecoveries(statistics, lastDate)
 	confirmedWithinRadius(statistics, lastDate, 2.341908, 48.860199, 500.0)
 }
@@ -92,7 +86,7 @@ func confirmedWithinRadius(statistics *mongo.Collection, date time.Time, lat flo
 	adapter := func(s Statistic) []string {
 		return []string{s.CombinedName, strconv.Itoa(int(s.Confirmed))}
 	}
-	PrintTable([]string{"Country", "Confirmed"}, cur, &ctx, adapter)
+	printTable([]string{"Country", "Confirmed"}, cur, &ctx, adapter)
 }
 
 // Get some results for the UK
@@ -114,7 +108,7 @@ func recentUKStats(statistics *mongo.Collection) {
 			strconv.Itoa(int(s.Deaths)),
 		}
 	}
-	PrintTable([]string{"Date", "Confirmed", "Recovered", "Deaths"}, cur, &ctx, adapter)
+	printTable([]string{"Date", "Confirmed", "Recovered", "Deaths"}, cur, &ctx, adapter)
 }
 
 // mostRecentDateLoaded gets the date of the last data loaded into the database
@@ -141,10 +135,13 @@ func highestRecoveries(statistics *mongo.Collection, date time.Time) {
 	adapter := func(s Statistic) []string {
 		return []string{s.CombinedName, strconv.Itoa(int(s.Recovered))}
 	}
-	PrintTable([]string{"Country", "Recovered"}, cur, &ctx, adapter)
+	printTable([]string{"Country", "Recovered"}, cur, &ctx, adapter)
 }
 
-func PrintTable(headings []string, cursor *mongo.Cursor, ctx *context.Context, mapper func(Statistic) []string) {
+// printTable prints the results of a statistics query in a table.
+// headings provides the heading cell contents
+// mapper is a funcion which maps Statistic structs to a string array of values to be displayed in the table.
+func printTable(headings []string, cursor *mongo.Cursor, ctx *context.Context, mapper func(Statistic) []string) {
 	table := tablewriter.NewWriter(os.Stdout)
 	table.SetHeader(headings)
 
