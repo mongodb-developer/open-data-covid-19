@@ -91,7 +91,7 @@ func main() {
 		log.Fatalf("Error loading metadata document: %v\n", err)
 	}
 	lastDate := meta.LastDate
-	fmt.Printf("Last date loaded: %v\n", lastDate)
+	fmt.Printf("\nLast date loaded: %v\n", lastDate)
 
 	// The last day's highest reported recoveries
 	fmt.Println("\nThe last day's highest reported recoveries:")
