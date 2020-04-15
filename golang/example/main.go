@@ -4,8 +4,11 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"os"
+	"strconv"
 	"time"
 
+	"github.com/olekukonko/tablewriter"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -72,20 +75,15 @@ func main() {
 		log.Fatal(err)
 	}
 	defer cur.Close(ctx)
-	tableFormat := "%-29v %9v %9v %6v\n"
-	fmt.Printf(tableFormat, "Date", "Confirmed", "Recovered", "Deaths")
-	for cur.Next(ctx) {
-		var result Statistic
-		err := cur.Decode(&result)
-		if err != nil {
-			log.Fatal(err)
+	adapter := func(s Statistic) []string {
+		return []string{
+			s.Date.String(),
+			strconv.Itoa(int(s.Confirmed)),
+			strconv.Itoa(int(s.Recovered)),
+			strconv.Itoa(int(s.Deaths)),
 		}
-
-		fmt.Printf(tableFormat, result.Date, result.Confirmed, result.Recovered, result.Deaths)
 	}
-	if err := cur.Err(); err != nil {
-		log.Fatal(err)
-	}
+	PrintTable([]string{"Date", "Confirmed", "Recovered", "Deaths"}, cur, adapter)
 
 	// Get the latest date:
 	var meta Metadata
@@ -99,36 +97,37 @@ func main() {
 	fmt.Println("\nThe last day's highest reported recoveries:")
 	opts := options.Find().SetSort(bson.D{{"recovered", -1}}).SetLimit(5)
 	cur, err = statistics.Find(context.TODO(), bson.D{{"date", lastDate}}, opts)
-
-	tableFormat = "%-15s %5d\n"
-	for cur.Next(ctx) {
-		var result Statistic
-		err := cur.Decode(&result)
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		fmt.Printf(tableFormat, result.CombinedName, result.Recovered)
+	adapter = func(s Statistic) []string {
+		return []string{s.CombinedName, strconv.Itoa(int(s.Recovered))}
 	}
-	if err := cur.Err(); err != nil {
-		log.Fatal(err)
-	}
+	PrintTable([]string{"Country", "Recovered"}, cur, adapter)
 
 	// Confirmed cases for all countries within 500km of Paris:
 	fmt.Println("\nThe last day's confirmed cases for all the countries within 500km of Paris:")
 	cur, err = statistics.Find(context.TODO(), bson.D{{"date", lastDate}, {"loc", bson.D{{"$geoWithin", bson.D{
 		{"$centerSphere", bson.A{bson.A{2.341908, 48.860199}, 500.0 / EARTH_RADIUS}}}}}}})
-	tableFormat = "%-32s %7d\n"
-	for cur.Next(ctx) {
+	adapter = func(s Statistic) []string {
+		return []string{s.CombinedName, strconv.Itoa(int(s.Confirmed))}
+	}
+	PrintTable([]string{"Country", "Confirmed"}, cur, adapter)
+}
+
+func PrintTable(headings []string, cursor *mongo.Cursor, mapper func(Statistic) []string) {
+	table := tablewriter.NewWriter(os.Stdout)
+	table.SetHeader(headings)
+
+	for cursor.Next(context.TODO()) {
 		var result Statistic
-		err := cur.Decode(&result)
+		err := cursor.Decode(&result)
 		if err != nil {
 			log.Fatal(err)
 		}
 
-		fmt.Printf(tableFormat, result.CombinedName, result.Confirmed)
+		table.Append(mapper(result))
 	}
-	if err := cur.Err(); err != nil {
+	if err := cursor.Err(); err != nil {
 		log.Fatal(err)
 	}
+
+	table.Render()
 }
