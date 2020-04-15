@@ -86,7 +86,7 @@ func confirmedWithinRadius(statistics *mongo.Collection, date time.Time, lat flo
 	adapter := func(s Statistic) []string {
 		return []string{s.CombinedName, strconv.Itoa(int(s.Confirmed))}
 	}
-	printTable([]string{"Country", "Confirmed"}, cur, &ctx, adapter)
+	printTable([]string{"Country", "Confirmed"}, cur, ctx, adapter)
 }
 
 // Get some results for the UK
@@ -108,7 +108,7 @@ func recentUKStats(statistics *mongo.Collection) {
 			strconv.Itoa(int(s.Deaths)),
 		}
 	}
-	printTable([]string{"Date", "Confirmed", "Recovered", "Deaths"}, cur, &ctx, adapter)
+	printTable([]string{"Date", "Confirmed", "Recovered", "Deaths"}, cur, ctx, adapter)
 }
 
 // mostRecentDateLoaded gets the date of the last data loaded into the database
@@ -135,17 +135,17 @@ func highestRecoveries(statistics *mongo.Collection, date time.Time) {
 	adapter := func(s Statistic) []string {
 		return []string{s.CombinedName, strconv.Itoa(int(s.Recovered))}
 	}
-	printTable([]string{"Country", "Recovered"}, cur, &ctx, adapter)
+	printTable([]string{"Country", "Recovered"}, cur, ctx, adapter)
 }
 
 // printTable prints the results of a statistics query in a table.
 // headings provides the heading cell contents
 // mapper is a funcion which maps Statistic structs to a string array of values to be displayed in the table.
-func printTable(headings []string, cursor *mongo.Cursor, ctx *context.Context, mapper func(Statistic) []string) {
+func printTable(headings []string, cursor *mongo.Cursor, ctx context.Context, mapper func(Statistic) []string) {
 	table := tablewriter.NewWriter(os.Stdout)
 	table.SetHeader(headings)
 
-	for cursor.Next(context.TODO()) {
+	for cursor.Next(ctx) {
 		var result Statistic
 		err := cursor.Decode(&result)
 		if err != nil {
