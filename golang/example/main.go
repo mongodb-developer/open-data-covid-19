@@ -107,7 +107,9 @@ func recentCountryStats(statistics *mongo.Collection, country string) {
 // from the 'metadata' collection.
 func mostRecentDateLoaded(metadata *mongo.Collection) time.Time {
 	var meta Metadata
-	if err := metadata.FindOne(context.TODO(), bson.D{}).Decode(&meta); err != nil {
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+	if err := metadata.FindOne(ctx, bson.D{}).Decode(&meta); err != nil {
 		panic(fmt.Sprintf("Error loading metadata document: %v", err))
 	}
 	return meta.LastDate
