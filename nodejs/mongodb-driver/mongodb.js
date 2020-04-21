@@ -1,7 +1,7 @@
 const MongoClient = require("mongodb").MongoClient;
 
 const uri =
-  "mongodb+srv://readonly:readonly@covid-19.hip2i.mongodb.net/test?retryWrites=true&w=majority";
+  "mongodb+srv://readonly:readonly@covid-19.hip2i.mongodb.net/test";
 
 const client = new MongoClient(uri, {
   useNewUrlParser: true,

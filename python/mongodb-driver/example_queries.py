@@ -5,7 +5,7 @@ from pymongo import MongoClient
 from tabulate import tabulate
 
 EARTH_RADIUS = 6371.0
-MDB_URL = "mongodb+srv://readonly:readonly@covid-19.hip2i.mongodb.net/test?retryWrites=true&w=majority"
+MDB_URL = "mongodb+srv://readonly:readonly@covid-19.hip2i.mongodb.net/test"
 
 
 def main():
