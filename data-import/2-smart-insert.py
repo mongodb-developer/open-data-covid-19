@@ -240,14 +240,17 @@ def get_mongodb_client():
     return MongoClient(uri)
 
 
-def mongodb_insert(client, docs):
-    coll = client.get_database('covid19').get_collection('statistics')
-    coll.drop()
-    return coll.insert_many(docs)
+def mongodb_update_statistics_collection(client, docs):
+    temp_coll = client.get_database('covid19').get_collection('temp')
+    temp_coll.drop()
+    result = temp_coll.insert_many(docs)
+    create_indexes(client)
+    temp_coll.rename('statistics', dropTarget=True)
+    return result
 
 
 def create_indexes(client):
-    coll = client.get_database('covid19').get_collection('statistics')
+    coll = client.get_database('covid19').get_collection('temp')
     coll.create_index([('country', pymongo.ASCENDING), ('state', pymongo.ASCENDING), ('city', pymongo.ASCENDING)])
     coll.create_index('country_iso3')
     coll.create_index('uid')
@@ -282,11 +285,10 @@ def main():
     print(len(docs), 'documents have been generated in', round(time.time() - start, 2), 's')
     start = time.time()
     client = get_mongodb_client()
-    print(len(mongodb_insert(client, docs).inserted_ids), 'have been inserted in', round(time.time() - start, 2), 's')
+    print(len(mongodb_update_statistics_collection(client, docs).inserted_ids), 'have been inserted in', round(time.time() - start, 2), 's')
     start = time.time()
-    create_indexes(client)
     create_metadata(client)
-    print('Creating indexes and metadata in', round(time.time() - start, 2), 's')
+    print('Creating metadata in', round(time.time() - start, 2), 's')
 
 
 if __name__ == '__main__':
