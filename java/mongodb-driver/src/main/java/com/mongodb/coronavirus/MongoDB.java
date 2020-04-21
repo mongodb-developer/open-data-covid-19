@@ -47,7 +47,7 @@ public class MongoDB {
     }
 
     private static MongoClientSettings getMongoClient() {
-        String connectionString = "mongodb+srv://readonly:readonly@covid-19.hip2i.mongodb.net/test";
+        String connectionString = "mongodb+srv://readonly:readonly@covid-19.hip2i.mongodb.net/covid19";
         CodecRegistry pojoCodecRegistry = fromProviders(PojoCodecProvider.builder().automatic(true).build());
         CodecRegistry codecRegistry = fromRegistries(MongoClientSettings.getDefaultCodecRegistry(), pojoCodecRegistry);
         return MongoClientSettings.builder()

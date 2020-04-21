@@ -13,7 +13,7 @@ Follow these steps to import the clean dataset:
 
 - Open a terminal in this folder,
 - Run `./0-download-latest-JHU.sh` to download the latest version of the dataset,
-- Run `python3 2-smart-insert.py "mongodb+srv://<username>:<password>@<your-cluster>.mongodb.net/test?retryWrites=true&w=majority"`
+- Run `python3 2-smart-insert.py "mongodb+srv://<username>:<password>@<your-cluster>.mongodb.net/covid19?retryWrites=true&w=majority"`
 
 > Note:
 > - You can rerun these scripts daily to get the latest version in your DB.
