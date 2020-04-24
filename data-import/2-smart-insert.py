@@ -160,7 +160,7 @@ def combine_global_and_fips(confirmed_global, deaths_global, recovered_global, f
         if doc3:
             fips.remove(doc3)
         else:
-            error_output.append("No FIPS found for " + doc['country'] + ' => ' + doc)
+            error_output.append("No FIPS found for " + doc['country'] + ' => ' + str(doc))
 
         combined.append({'confirmed_global': doc, 'deaths_global': doc1, 'recovered_global': doc2, 'fips': doc3})
 
@@ -185,7 +185,7 @@ def combine_us_and_fips(confirmed_us, deaths_us, fips):
         if doc2:
             fips.remove(doc2)
         else:
-            error_output.append("No UID found for " + doc['combined_name'] + ' => ' + doc)
+            error_output.append("No UID found for " + doc['combined_name'] + ' => ' + str(doc))
 
         combined.append({'confirmed_us': doc, 'deaths_us': doc1, 'fips': doc2})
 
