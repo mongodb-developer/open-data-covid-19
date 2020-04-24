@@ -122,6 +122,10 @@ def data_hacking(recovered, fips, confirmed_us, deaths_us):
     for d in recovered:
         if d.get('country') == 'Canada' and is_blank(d.get('state')):
             d['state'] = 'Recovered'
+    # Ignoring lines without an UID as it's corrupted data
+    confirmed_us = [d for d in confirmed_us if not d.get('uid', '') == '']
+    deaths_us = [d for d in deaths_us if not d.get('uid', '') == '']
+    return confirmed_us, deaths_us
 
 
 def print_warnings_and_exit_on_error(deaths, recovered, deaths_us):
@@ -464,7 +468,7 @@ def create_collection_stats_countries(client):
 def main():
     start = time.time()
     fips, confirmed_global, deaths_global, recovered_global, confirmed_us, deaths_us = clean_all_docs(get_all_csv_as_docs())
-    data_hacking(recovered_global, fips, confirmed_us, deaths_us)
+    confirmed_us, deaths_us = data_hacking(recovered_global, fips, confirmed_us, deaths_us)
     combined_global = combine_global_and_fips(confirmed_global, deaths_global, recovered_global, fips)
     combined_us = combine_us_and_fips(confirmed_us, deaths_us, fips)
     print_warnings_and_exit_on_error(deaths_global, recovered_global, deaths_us)
