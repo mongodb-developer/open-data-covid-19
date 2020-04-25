@@ -287,13 +287,13 @@ def create_index_country_state_city(client, collection):
 
 def create_indexes(client):
     start = time.time()
-    create_indexes_generic(client, 'statistics_global_temp')
-    create_indexes_generic(client, 'statistics_us_temp')
+    create_indexes_generic(client, 'confirmed_recovered_deaths_temp')
+    create_indexes_generic(client, 'us_only_temp')
     create_indexes_generic(client, 'statistics_temp')
-    create_indexes_generic(client, 'statistics_countries_temp')
-    create_index_country_state(client, 'statistics_global_temp')
-    create_index_country_state(client, 'statistics_countries_temp')
-    create_index_country_state_city(client, 'statistics_us_temp')
+    create_indexes_generic(client, 'countries_summary_temp')
+    create_index_country_state(client, 'confirmed_recovered_deaths_temp')
+    create_index_country_state(client, 'countries_summary_temp')
+    create_index_country_state_city(client, 'us_only_temp')
     create_index_country_state_city(client, 'statistics_temp')
     print('Created indexes in ', round(time.time() - start, 2), 's')
 
@@ -332,7 +332,7 @@ def create_metadata(client):
 
 def create_collection_stats_countries(client):
     start = time.time()
-    coll = client.get_database('covid19').get_collection('statistics_global_temp')
+    coll = client.get_database('covid19').get_collection('confirmed_recovered_deaths_temp')
     pipeline = [
         {
             '$group': {
@@ -458,11 +458,11 @@ def create_collection_stats_countries(client):
                 }
             }
         }, {
-            '$out': 'statistics_countries_temp'
+            '$out': 'countries_summary_temp'
         }
     ]
     coll.aggregate(pipeline)
-    print('Created collection statistics_countries_temp in', round(time.time() - start, 2), 's')
+    print('Created collection countries_summary_temp in', round(time.time() - start, 2), 's')
 
 
 def main():
@@ -477,15 +477,15 @@ def main():
     print(len(docs_global) + len(docs_us), 'documents have been generated in', round(time.time() - start, 2), 's')
 
     client = get_mongodb_client()
-    mongodb_insert_many(client, 'statistics_global_temp', docs_global)
-    mongodb_insert_many(client, 'statistics_us_temp', docs_us)
+    mongodb_insert_many(client, 'confirmed_recovered_deaths_temp', docs_global)
+    mongodb_insert_many(client, 'us_only_temp', docs_us)
     mongodb_insert_many(client, 'statistics_temp', docs_global + docs_us)
     create_collection_stats_countries(client)
 
     create_indexes(client)
     fix_double_count_us(client, 'statistics_temp')
 
-    rename_collections(client, ['statistics_global_temp', 'statistics_us_temp', 'statistics_temp', 'statistics_countries_temp'])
+    rename_collections(client, ['confirmed_recovered_deaths_temp', 'us_only_temp', 'statistics_temp', 'countries_summary_temp'])
     create_metadata(client)
 
 
