@@ -232,6 +232,8 @@ So to take advantages of both collections, I just removed the confirmed and deat
 
 This allow me to keep track of the recovered cases in the US while also keeping track of the confirmed and deaths cases at a more detailed level. This is really the best we can do here because JHU don't reported recovered cases at a detailed level for the US.
 
+> With this trick, the count for confirmed, deaths and recovered persons for a given date is correct.
+
 This is the collection I'm using to build my charts in my charts blog posts:
 
 - [blog post on Developer Hub](https://developer.mongodb.com/article/coronavirus-map-live-data-tracker-charts),
@@ -239,7 +241,87 @@ This is the collection I'm using to build my charts in my charts blog posts:
 
 The documents in this collection are exactly the same than in the collections mentioned above.
 
+- For a document that comes from the `confirmed_recovered_deaths` collection:
+
+```javascript
+{
+	"_id" : ObjectId("5ea49768865a48ecca6d5ccb"),
+	"uid" : 250,
+	"country_iso2" : "FR",
+	"country_iso3" : "FRA",
+	"country_code" : 250,
+	"country" : "France",
+	"combined_name" : "France",
+	"population" : 65273512,
+	"loc" : {
+		"type" : "Point",
+		"coordinates" : [
+			2.2137,
+			46.2276
+		]
+	},
+	"date" : ISODate("2020-04-24T00:00:00Z"),
+	"confirmed" : 158636,
+	"deaths" : 22245,
+	"recovered" : 43493
+}
+```
+
+- For a document that comes from the `us_only` collection:
+
+```javascript
+{
+	"_id" : ObjectId("5ea4976b865a48ecca70df4d"),
+	"uid" : 84042101,
+	"country_iso2" : "US",
+	"country_iso3" : "USA",
+	"country_code" : 840,
+	"fips" : 42101,
+	"city" : "Philadelphia",
+	"state" : "Pennsylvania",
+	"country" : "US",
+	"combined_name" : "Philadelphia, Pennsylvania, US",
+	"population" : 1584064,
+	"loc" : {
+		"type" : "Point",
+		"coordinates" : [
+			-75.1379,
+			40.0034
+		]
+	},
+	"date" : ISODate("2020-04-24T00:00:00Z"),
+	"confirmed" : 11877,
+	"deaths" : 449
+}
+```
+
+- For the special document that comes from the `confirmed_recovered_deaths` collection and represents the US entire country (the one with the trick):
+
+```javascript
+{
+	"_id" : ObjectId("5ea49768865a48ecca6d84d1"),
+	"uid" : 840,
+	"country_iso2" : "US",
+	"country_iso3" : "USA",
+	"country_code" : 840,
+	"country" : "US",
+	"combined_name" : "US",
+	"population" : 329466283,
+	"loc" : {
+		"type" : "Point",
+		"coordinates" : [
+			-100,
+			40
+		]
+	},
+	"date" : ISODate("2020-04-24T00:00:00Z"),
+	"recovered" : 99079
+}
+```
+
 Just pay attention: the documents which come from the US detailed source don't have a `recovered` field because JHU doesn't provide this data. Only the documents (one for each date) that represents the US at a country level contain the `recovered` field.
+
+Also JHU doesn't provide the recovered count for all the countries and states in the global files.
 
 In this collection, we have `(nb_entries(time_series_covid19_confirmed_global.csv) + nb_entries(time_series_covid19_confirmed_global.csv)) * number_days`.
 
