@@ -7,6 +7,14 @@ from datetime import datetime
 import pymongo
 from pymongo import MongoClient
 
+DB = 'covid19'
+TEMP = '_temp'
+COLL_countries = 'countries_summary' + TEMP
+COLL_stats = 'statistics' + TEMP
+COLL_global = 'confirmed_recovered_deaths' + TEMP
+COLL_us = 'us_only' + TEMP
+COLL_metadata = 'metadata'
+
 
 def parse(val):
     val = clean(val)
@@ -117,7 +125,7 @@ def clean_all_docs(csvs):
     return map(lambda x: clean_docs(x), csvs)
 
 
-def data_hacking(recovered, fips, confirmed_us, deaths_us):
+def data_hacking(recovered, confirmed_us, deaths_us):
     # Fixing data for Canada
     for d in recovered:
         if d.get('country') == 'Canada' and is_blank(d.get('state')):
@@ -256,51 +264,62 @@ def get_mongodb_client():
 
 def mongodb_insert_many(client, collection, docs):
     start = time.time()
-    coll = client.get_database('covid19').get_collection(collection)
+    coll = client.get_database(DB).get_collection(collection)
     coll.drop()
     result = coll.insert_many(docs)
     print(len(result.inserted_ids), 'have been inserted in', collection, 'in', round(time.time() - start, 2), 's')
 
 
 def create_indexes_generic(client, collection):
-    coll = client.get_database('covid19').get_collection(collection)
-    coll.create_index('country_iso3')
-    coll.create_index('uid')
+    coll = client.get_database(DB).get_collection(collection)
+    coll.create_index([('country_iso3', pymongo.ASCENDING), ('date', pymongo.ASCENDING)], sparse=True)
+    coll.create_index([('uid', pymongo.ASCENDING), ('date', pymongo.ASCENDING)])
     coll.create_index('date')
     coll.create_index([("loc", pymongo.GEOSPHERE)], sparse=True)
 
 
+def create_indexes_countries_collection(client, collection):
+    coll = client.get_database(DB).get_collection(collection)
+    coll.create_index('date')
+    coll.create_index([('country', pymongo.ASCENDING), ('date', pymongo.ASCENDING)])
+    coll.create_index([('country', pymongo.ASCENDING), ('states', pymongo.ASCENDING), ('date', pymongo.ASCENDING)], sparse=True)
+    coll.create_index([('uids', pymongo.ASCENDING), ('date', pymongo.ASCENDING)])
+    coll.create_index([('country_iso3s', pymongo.ASCENDING), ('date', pymongo.ASCENDING)], sparse=True)
+
+
 def create_index_country(client, collection):
-    coll = client.get_database('covid19').get_collection(collection)
-    coll.create_index([('country', pymongo.ASCENDING)])
+    coll = client.get_database(DB).get_collection(collection)
+    coll.create_index([('country', pymongo.ASCENDING), ('date', pymongo.ASCENDING)])
 
 
 def create_index_country_state(client, collection):
-    coll = client.get_database('covid19').get_collection(collection)
-    coll.create_index([('country', pymongo.ASCENDING), ('state', pymongo.ASCENDING)], sparse=True)
+    coll = client.get_database(DB).get_collection(collection)
+    coll.create_index([('country', pymongo.ASCENDING), ('date', pymongo.ASCENDING)], sparse=True)
+    coll.create_index([('country', pymongo.ASCENDING), ('state', pymongo.ASCENDING), ('date', pymongo.ASCENDING)], sparse=True)
 
 
 def create_index_country_state_city(client, collection):
-    coll = client.get_database('covid19').get_collection(collection)
-    coll.create_index([('country', pymongo.ASCENDING), ('state', pymongo.ASCENDING), ('city', pymongo.ASCENDING)], sparse=True)
+    coll = client.get_database(DB).get_collection(collection)
+    coll.create_index([('country', pymongo.ASCENDING), ('date', pymongo.ASCENDING)], sparse=True)
+    coll.create_index([('country', pymongo.ASCENDING), ('state', pymongo.ASCENDING), ('date', pymongo.ASCENDING)], sparse=True)
+    coll.create_index([('country', pymongo.ASCENDING), ('state', pymongo.ASCENDING), ('city', pymongo.ASCENDING), ('date', pymongo.ASCENDING)], sparse=True)
 
 
 def create_indexes(client):
     start = time.time()
-    create_indexes_generic(client, 'confirmed_recovered_deaths_temp')
-    create_indexes_generic(client, 'us_only_temp')
-    create_indexes_generic(client, 'statistics_temp')
-    create_indexes_generic(client, 'countries_summary_temp')
-    create_index_country_state(client, 'confirmed_recovered_deaths_temp')
-    create_index_country_state(client, 'countries_summary_temp')
-    create_index_country_state_city(client, 'us_only_temp')
-    create_index_country_state_city(client, 'statistics_temp')
+    create_indexes_generic(client, COLL_global)
+    create_indexes_generic(client, COLL_us)
+    create_indexes_generic(client, COLL_stats)
+    create_index_country_state(client, COLL_global)
+    create_index_country_state_city(client, COLL_us)
+    create_index_country_state_city(client, COLL_stats)
+    create_indexes_countries_collection(client, COLL_countries)
     print('Created indexes in ', round(time.time() - start, 2), 's')
 
 
 def fix_double_count_us(client, collection):
     start = time.time()
-    coll = client.get_database('covid19').get_collection(collection)
+    coll = client.get_database(DB).get_collection(collection)
     coll.update_many({'country': 'US', 'state': {'$exists': 0}}, {'$unset': {'deaths': '', 'confirmed': ''}})
     print('Removed double count for the US in collection', collection, 'in', round(time.time() - start, 2), 's')
 
@@ -308,31 +327,34 @@ def fix_double_count_us(client, collection):
 def rename_collections(client, collections):
     start = time.time()
     for collection in collections:
-        coll = client.get_database('covid19').get_collection(collection)
-        coll.rename(collection.replace('_temp', ''), dropTarget=True)
+        coll = client.get_database(DB).get_collection(collection)
+        coll.rename(collection.replace(TEMP, ''), dropTarget=True)
     print('Renamed collections in', round(time.time() - start, 2), 's')
 
 
 def create_metadata(client):
     start = time.time()
-    coll = client.get_database('covid19').get_collection('statistics')
-    countries = list(coll.distinct('country'))
-    states = list(coll.distinct('state'))
-    cities = list(coll.distinct('city'))
-    iso3s = list(coll.distinct('country_iso3'))
-    uids = list(coll.distinct('uid'))
+    coll = client.get_database(DB).get_collection(COLL_stats.replace(TEMP, ''))
+    coll_us = client.get_database(DB).get_collection(COLL_us.replace(TEMP, ''))
+    countries = list(filter(None, coll.distinct('country')))
+    states = list(filter(None, coll.distinct('state')))
+    states_us = list(filter(None, coll_us.distinct('state')))
+    cities = list(filter(None, coll.distinct('city')))
+    iso3s = list(filter(None, coll.distinct('country_iso3')))
+    uids = list(filter(None, coll.distinct('uid')))
     dates = list(coll.aggregate([{'$sort': {'date': 1}}, {'$group': {'_id': None, 'first': {'$first': '$date'}, 'last': {'$last': '$date'}}}, {'$project': {'_id': 0}}]))[0]
 
-    metadata_coll = client.get_database('covid19').get_collection('metadata')
+    metadata_coll = client.get_database(DB).get_collection(COLL_metadata)
     metadata_coll.delete_one({'_id': 'metadata'})
     metadata_coll.insert_one(
-        {'_id': 'metadata', 'countries': countries, 'states': states, 'cities': cities, 'iso3s': iso3s, 'uids': uids, 'first_date': dates['first'], 'last_date': dates['last']})
+        {'_id': 'metadata', 'countries': countries, 'states': states, 'states_us': states_us, 'cities': cities, 'iso3s': iso3s, 'uids': uids, 'first_date': dates['first'],
+         'last_date': dates['last']})
     print('Created metadata in', round(time.time() - start, 2), 's')
 
 
 def create_collection_stats_countries(client):
     start = time.time()
-    coll = client.get_database('covid19').get_collection('confirmed_recovered_deaths_temp')
+    coll = client.get_database(DB).get_collection(COLL_global)
     pipeline = [
         {
             '$group': {
@@ -340,26 +362,23 @@ def create_collection_stats_countries(client):
                     'country': '$country',
                     'date': '$date'
                 },
-                'uid': {
+                'uids': {
                     '$addToSet': '$uid'
                 },
-                'country_iso2': {
+                'country_iso2s': {
                     '$addToSet': '$country_iso2'
                 },
-                'country_iso3': {
+                'country_iso3s': {
                     '$addToSet': '$country_iso3'
                 },
-                'country_code': {
+                'country_codes': {
                     '$addToSet': '$country_code'
                 },
-                'combined_name': {
+                'combined_names': {
                     '$addToSet': '$combined_name'
                 },
                 'population': {
                     '$first': '$population'
-                },
-                'loc': {
-                    '$first': '$loc'
                 },
                 'confirmed': {
                     '$sum': '$confirmed'
@@ -370,7 +389,7 @@ def create_collection_stats_countries(client):
                 'recovered': {
                     '$push': '$recovered'
                 },
-                'state': {
+                'states': {
                     '$push': '$state'
                 }
             }
@@ -384,36 +403,36 @@ def create_collection_stats_countries(client):
                     '$cond': [
                         {
                             '$eq': [
-                                '$country_iso2', None
+                                '$country_iso2s', None
                             ]
-                        }, '$$REMOVE', '$country_iso2'
+                        }, '$$REMOVE', '$country_iso2s'
                     ]
                 },
                 'country_iso3s': {
                     '$cond': [
                         {
                             '$eq': [
-                                '$country_iso3', None
+                                '$country_iso3s', None
                             ]
-                        }, '$$REMOVE', '$country_iso3'
+                        }, '$$REMOVE', '$country_iso3s'
                     ]
                 },
                 'country_codes': {
                     '$cond': [
                         {
                             '$eq': [
-                                '$country_iso3', None
+                                '$country_codes', None
                             ]
-                        }, '$$REMOVE', '$country_code'
+                        }, '$$REMOVE', '$country_codes'
                     ]
                 },
                 'combined_names': {
                     '$cond': [
                         {
                             '$eq': [
-                                '$combined_name', None
+                                '$combined_names', None
                             ]
-                        }, '$$REMOVE', '$combined_name'
+                        }, '$$REMOVE', '$combined_names'
                     ]
                 },
                 'population': {
@@ -423,15 +442,6 @@ def create_collection_stats_countries(client):
                                 '$population', None
                             ]
                         }, '$$REMOVE', '$population'
-                    ]
-                },
-                'loc': {
-                    '$cond': [
-                        {
-                            '$eq': [
-                                '$loc', None
-                            ]
-                        }, '$$REMOVE', '$loc'
                     ]
                 },
                 'confirmed': 1,
@@ -451,24 +461,24 @@ def create_collection_stats_countries(client):
                     '$cond': [
                         {
                             '$eq': [
-                                '$state', []
+                                '$states', []
                             ]
-                        }, '$$REMOVE', '$state'
+                        }, '$$REMOVE', '$states'
                     ]
                 }
             }
         }, {
-            '$out': 'countries_summary_temp'
+            '$out': COLL_countries
         }
     ]
     coll.aggregate(pipeline)
-    print('Created collection countries_summary_temp in', round(time.time() - start, 2), 's')
+    print('Created collection', COLL_countries, 'in', round(time.time() - start, 2), 's')
 
 
 def main():
     start = time.time()
     fips, confirmed_global, deaths_global, recovered_global, confirmed_us, deaths_us = clean_all_docs(get_all_csv_as_docs())
-    confirmed_us, deaths_us = data_hacking(recovered_global, fips, confirmed_us, deaths_us)
+    confirmed_us, deaths_us = data_hacking(recovered_global, confirmed_us, deaths_us)
     combined_global = combine_global_and_fips(confirmed_global, deaths_global, recovered_global, fips)
     combined_us = combine_us_and_fips(confirmed_us, deaths_us, fips)
     print_warnings_and_exit_on_error(deaths_global, recovered_global, deaths_us)
@@ -477,15 +487,15 @@ def main():
     print(len(docs_global) + len(docs_us), 'documents have been generated in', round(time.time() - start, 2), 's')
 
     client = get_mongodb_client()
-    mongodb_insert_many(client, 'confirmed_recovered_deaths_temp', docs_global)
-    mongodb_insert_many(client, 'us_only_temp', docs_us)
-    mongodb_insert_many(client, 'statistics_temp', docs_global + docs_us)
+    mongodb_insert_many(client, COLL_global, docs_global)
+    mongodb_insert_many(client, COLL_us, docs_us)
+    mongodb_insert_many(client, COLL_stats, docs_global + docs_us)
     create_collection_stats_countries(client)
 
     create_indexes(client)
-    fix_double_count_us(client, 'statistics_temp')
+    fix_double_count_us(client, COLL_stats)
 
-    rename_collections(client, ['confirmed_recovered_deaths_temp', 'us_only_temp', 'statistics_temp', 'countries_summary_temp'])
+    rename_collections(client, [COLL_global, COLL_us, COLL_stats, COLL_countries])
     create_metadata(client)
 
 
