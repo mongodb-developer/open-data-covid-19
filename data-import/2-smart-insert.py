@@ -10,8 +10,8 @@ from pymongo import MongoClient
 DB = 'covid19'
 TEMP = '_temp'
 COLL_countries = 'countries_summary' + TEMP
-COLL_stats = 'statistics' + TEMP
-COLL_global = 'confirmed_recovered_deaths' + TEMP
+COLL_global_and_us = 'global_and_us' + TEMP
+COLL_global = 'global' + TEMP
 COLL_us = 'us_only' + TEMP
 COLL_metadata = 'metadata'
 
@@ -309,10 +309,10 @@ def create_indexes(client):
     start = time.time()
     create_indexes_generic(client, COLL_global)
     create_indexes_generic(client, COLL_us)
-    create_indexes_generic(client, COLL_stats)
+    create_indexes_generic(client, COLL_global_and_us)
     create_index_country_state(client, COLL_global)
     create_index_country_state_city(client, COLL_us)
-    create_index_country_state_city(client, COLL_stats)
+    create_index_country_state_city(client, COLL_global_and_us)
     create_indexes_countries_collection(client, COLL_countries)
     print('Created indexes in ', round(time.time() - start, 2), 's')
 
@@ -334,7 +334,7 @@ def rename_collections(client, collections):
 
 def create_metadata(client):
     start = time.time()
-    coll = client.get_database(DB).get_collection(COLL_stats.replace(TEMP, ''))
+    coll = client.get_database(DB).get_collection(COLL_global_and_us.replace(TEMP, ''))
     coll_us = client.get_database(DB).get_collection(COLL_us.replace(TEMP, ''))
     countries = list(filter(None, coll.distinct('country')))
     states = list(filter(None, coll.distinct('state')))
@@ -489,13 +489,13 @@ def main():
     client = get_mongodb_client()
     mongodb_insert_many(client, COLL_global, docs_global)
     mongodb_insert_many(client, COLL_us, docs_us)
-    mongodb_insert_many(client, COLL_stats, docs_global + docs_us)
+    mongodb_insert_many(client, COLL_global_and_us, docs_global + docs_us)
     create_collection_stats_countries(client)
 
     create_indexes(client)
-    fix_double_count_us(client, COLL_stats)
+    fix_double_count_us(client, COLL_global_and_us)
 
-    rename_collections(client, [COLL_global, COLL_us, COLL_stats, COLL_countries])
+    rename_collections(client, [COLL_global, COLL_us, COLL_global_and_us, COLL_countries])
     create_metadata(client)
 
 
