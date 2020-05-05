@@ -3,3 +3,7 @@ jhu/
 target/
 node_modules/
 *.iml
+golang/**/.envrc
+golang/**/example
+golang/**/main
+golang/**/golang_example

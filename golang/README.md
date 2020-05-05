@@ -1,10 +1,31 @@
 # Go Sample Code
 
 This directory contains sample code to get you started querying the COVID-19 open data collections with Golang.
+
 This code was developed Go 1.14 - there are no guarantees it will work with earlier versions of Go.
+
 All of the code can be found in [example/main.go](example/main.go).
+
+## Run using Docker
+
+If you don't have go 1.14, you can test this program using Docker.
+
+- The script `0-docker-build.sh` will build the docker image with the Go program compiled in it.
+- The script `1-docker-run.sh` will run the Go program within a docker container and destroy said container when it's over.
+- If you want to remove the docker image from your computer, you can run `2-docker-clean.sh`.
+
+```shell script
+./0-docker-build.sh
+./1-docker-run.sh
+./2-docker-clean.sh
+```
+
+## Run using Go
+
 If you have Go 1.14 installed you can build the sample code binary by running `make` in this directory.
+
 The Makefile will build an executable in the current directory, called `golang_example`.
+
 If you run `golang_example` the results should look something like this:
 
 ```text
