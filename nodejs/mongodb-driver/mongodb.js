@@ -10,11 +10,11 @@ const client = new MongoClient(uri, {
 
 client.connect((err) => {
   const covid19Database = client.db("covid19");
-  const statistics = covid19Database.collection("statistics");
+  const globalAndUS = covid19Database.collection("global_and_us");
   const metadata = covid19Database.collection("metadata");
 
   // Query to get the last 5 entries for France (continent only)
-  statistics
+  globalAndUS
     .find({ country: "France" })
     .sort(["date", -1])
     .limit(15)
@@ -34,7 +34,7 @@ client.connect((err) => {
       }
       const lastDate = docs[0].last_date;
 
-      statistics
+      globalAndUS
         .find({ date: { $eq: lastDate } })
         .limit(5)
         .toArray((err, docs) => {
@@ -59,7 +59,7 @@ client.connect((err) => {
       }
       const lastDate = docs[0].last_date;
 
-      statistics
+      globalAndUS
         .find({
           date: { $eq: lastDate },
           loc: {
