@@ -23,7 +23,7 @@ public class MongoDB {
         try (MongoClient client = MongoClients.create(getMongoClient())) {
             int earthRadius = 6371;
             MongoDatabase db = client.getDatabase("covid19");
-            MongoCollection<Stat> statsCollection = db.getCollection("statistics", Stat.class);
+            MongoCollection<GlobalAndUs> statsCollection = db.getCollection("global_and_us", GlobalAndUs.class);
             MongoCollection<Metadata> metadataCollection = db.getCollection("metadata", Metadata.class);
 
             System.out.println("Query to get the last 5 entries for France (continent only)");

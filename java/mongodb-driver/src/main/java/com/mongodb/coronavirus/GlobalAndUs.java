@@ -6,7 +6,7 @@ import org.bson.types.ObjectId;
 import java.util.Date;
 import java.util.Objects;
 
-public class Stat {
+public class GlobalAndUs {
 
     private ObjectId id;
     private Integer uid;
@@ -186,17 +186,17 @@ public class Stat {
             return true;
         if (o == null || getClass() != o.getClass())
             return false;
-        Stat stat = (Stat) o;
-        return Objects.equals(id, stat.id) && Objects.equals(uid, stat.uid) && Objects.equals(country,
-                                                                                              stat.country) && Objects
-                .equals(countryCode, stat.countryCode) && Objects.equals(countryIso2,
-                                                                         stat.countryIso2) && Objects.equals(
-                countryIso3, stat.countryIso3) && Objects.equals(state, stat.state) && Objects.equals(city,
-                                                                                                      stat.city) && Objects
-                .equals(combinedName, stat.combinedName) && Objects.equals(confirmed, stat.confirmed) && Objects.equals(
-                deaths, stat.deaths) && Objects.equals(recovered, stat.recovered) && Objects.equals(population,
-                                                                                                    stat.population) && Objects
-                .equals(date, stat.date) && Objects.equals(fips, stat.fips) && Objects.equals(loc, stat.loc);
+        GlobalAndUs globalAndUs = (GlobalAndUs) o;
+        return Objects.equals(id, globalAndUs.id) && Objects.equals(uid, globalAndUs.uid) && Objects.equals(country,
+                                                                                                            globalAndUs.country) && Objects
+                .equals(countryCode, globalAndUs.countryCode) && Objects.equals(countryIso2,
+                                                                                globalAndUs.countryIso2) && Objects.equals(
+                countryIso3, globalAndUs.countryIso3) && Objects.equals(state, globalAndUs.state) && Objects.equals(city,
+                                                                                                                    globalAndUs.city) && Objects
+                .equals(combinedName, globalAndUs.combinedName) && Objects.equals(confirmed, globalAndUs.confirmed) && Objects.equals(
+                deaths, globalAndUs.deaths) && Objects.equals(recovered, globalAndUs.recovered) && Objects.equals(population,
+                                                                                                                  globalAndUs.population) && Objects
+                .equals(date, globalAndUs.date) && Objects.equals(fips, globalAndUs.fips) && Objects.equals(loc, globalAndUs.loc);
     }
 
     @Override
