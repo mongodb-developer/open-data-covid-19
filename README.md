@@ -21,10 +21,10 @@ In each of these collections:
 5 collections are available:
 
 - metadata
-- statistics (the most complete one)
-- confirmed_recovered_deaths (the data from the time series global files)
+- global (the data from the time series global files)
 - us_only (the data from the time series US files)
-- countries_summary (same as confirmed_recovered_deaths but countries are grouped in a single doc for each date.)
+- global_and_us (the most complete one)
+- countries_summary (same as global but countries are grouped in a single doc for each date)
 
 #### Collection metadata
 
@@ -35,15 +35,16 @@ This collection contains only one single document. It contains the list of all t
   _id : "metadata",
   countries : [ "Afghanistan", "Albania", "Algeria", "..." ],
   states : [ "Alabama", "Alaska", "Alberta", "..." ],
+  states_us : [ "Alabama", "Alaska", "American Samoa", "..." ],
   cities : [ "Abbeville", "Acadia", "Accomack", "..." ],
-  iso3s : [ null, "ABW", "AFG", "..." ],
+  iso3s : [ "ABW", "AFG", "AGO", "..." ],
   uids : [ 4, 8, 12, ... ],
   first_date : 2020-01-22T00:00:00.000+00:00,
   last_date : 2020-04-24T00:00:00.000+00:00
 }
 ```
 
-#### Collection confirmed_recovered_deaths
+#### Collection global
 
 This collection contains the equivalent of what is in the 3 documents:
 
@@ -123,7 +124,7 @@ Note: JHU does not provide recovered data for the US files. It's currently only 
 
 #### Collection countries_summary
 
-This collection is calculated using the data from the `confirmed_recovered_deaths` collection. It's the same collection but the countries are grouped together into a single document for each date.
+This collection is calculated using the data from the `global` collection. It's the same collection but the countries are grouped together into a single document for each date.
 
 So in this collection, you will find `nb_countries * nb_days` documents.
 
@@ -135,72 +136,30 @@ Here is an example for France:
 
 ```javascript
 {
-	"_id" : ObjectId("5ea47b661adaef5faa91478b"),
-	"confirmed" : 6,
-	"deaths" : 0,
+	"_id" : ObjectId("5eb1e2bdeb5fc5a3a38a33f8"),
+	"uids" : [ 312, 175, 638, 666, 258, 250, 663, 254, 652, 540, 474 ],
+	"confirmed" : 169583,
+	"deaths" : 25204,
 	"country" : "France",
-	"date" : ISODate("2020-02-02T00:00:00Z"),
-	"country_iso2s" : [
-		"PF",
-		"BL",
-		"FR",
-		"NC",
-		"PM",
-		"MQ",
-		"YT",
-		"GP",
-		"RE",
-		"MF",
-		"GF"
-	],
-	"country_iso3s" : [
-		"GLP",
-		"REU",
-		"FRA",
-		"GUF",
-		"SPM",
-		"PYF",
-		"MYT",
-		"MAF",
-		"MTQ",
-		"NCL",
-		"BLM"
-	],
-	"country_codes" : [
-		312,
-		638,
-		652,
-		474,
-		254,
-		663,
-		175,
-		258,
-		250,
-		540,
-		666
-	],
+	"date" : ISODate("2020-05-04T00:00:00Z"),
+	"country_iso2s" : [ "GF", "MF", "PF", "YT", "GP", "RE", "PM", "MQ", "FR", "BL", "NC" ],
+	"country_iso3s" : [ "SPM", "NCL", "REU", "BLM", "MAF", "MYT", "MTQ", "PYF", "GLP", "FRA", "GUF" ],
+	"country_codes" : [ 652, 474, 666, 175, 250, 258, 254, 663, 312, 638, 540 ],
 	"combined_names" : [
+		"Saint Pierre and Miquelon, France",
+		"Guadeloupe, France",
 		"Reunion, France",
 		"New Caledonia, France",
 		"Saint Barthelemy, France",
 		"France",
-		"Guadeloupe, France",
 		"Martinique, France",
-		"French Polynesia, France",
 		"Mayotte, France",
-		"Saint Pierre and Miquelon, France",
+		"French Polynesia, France",
 		"French Guiana, France",
 		"St Martin, France"
 	],
 	"population" : 298682,
-	"loc" : {
-		"type" : "Point",
-		"coordinates" : [
-			-53,
-			4
-		]
-	},
-	"recovered" : 0,
+	"recovered" : 51476,
 	"states" : [
 		"French Guiana",
 		"French Polynesia",
@@ -216,11 +175,11 @@ Here is an example for France:
 }
 ```
 
-#### Collection statistics
+#### Collection global_and_us
 
 This collection is the most complete collection in this database. This collection basically contains all the documents from the collections:
 
-- `confirmed_recovered_deaths`
+- `global`
 - `us_only`
 
 But with a little trick on top: the US cases are counted in both collections respectively:
@@ -228,7 +187,7 @@ But with a little trick on top: the US cases are counted in both collections res
 - at a country level in the first one,
 - and in a more detailed level (city, county, state) in the second one.
 
-So to take advantages of both collections, I just removed the confirmed and deaths counts from the US documents which comes from the `confirmed_recovered_deaths` collection.
+So to take advantages of both collections, I just removed the confirmed and deaths counts from the US documents which comes from the `global` collection.
 
 This allow me to keep track of the recovered cases in the US while also keeping track of the confirmed and deaths cases at a more detailed level. This is really the best we can do here because JHU don't reported recovered cases at a detailed level for the US.
 
@@ -241,7 +200,7 @@ This is the collection I'm using to build my charts in my charts blog posts:
 
 The documents in this collection are exactly the same than in the collections mentioned above.
 
-- For a document that comes from the `confirmed_recovered_deaths` collection:
+- For a document that comes from the `global` collection:
 
 ```javascript
 {
@@ -295,7 +254,7 @@ The documents in this collection are exactly the same than in the collections me
 }
 ```
 
-- For the special document that comes from the `confirmed_recovered_deaths` collection and represents the US entire country (the one with the trick):
+- For the special document that comes from the `global` collection and represents the US entire country (the one with the trick):
 
 ```javascript
 {
