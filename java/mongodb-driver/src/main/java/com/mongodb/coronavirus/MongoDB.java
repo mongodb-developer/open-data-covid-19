@@ -23,23 +23,26 @@ public class MongoDB {
         try (MongoClient client = MongoClients.create(getMongoClient())) {
             int earthRadius = 6371;
             MongoDatabase db = client.getDatabase("covid19");
-            MongoCollection<GlobalAndUs> statsCollection = db.getCollection("global_and_us", GlobalAndUs.class);
+            MongoCollection<GlobalAndUs> globalAndUsCollection = db.getCollection("global_and_us", GlobalAndUs.class);
             MongoCollection<Metadata> metadataCollection = db.getCollection("metadata", Metadata.class);
 
             System.out.println("Query to get the last 5 entries for France (continent only)");
             Bson franceFilter = eq("country", "France");
             Bson noStateFilter = eq("state", null);
-            statsCollection.find(and(franceFilter, noStateFilter)).sort(descending("date")).limit(5).forEach(System.out::println);
+            globalAndUsCollection.find(and(franceFilter, noStateFilter))
+                                 .sort(descending("date"))
+                                 .limit(5)
+                                 .forEach(System.out::println);
 
             System.out.println("\nQuery to get the last day data (limited to 5 docs here).");
             Metadata metadata = metadataCollection.find().first();
             Date lastDate = metadata.getLastDate();
             Bson lastDayFilter = eq("date", lastDate);
-            statsCollection.find(lastDayFilter).limit(5).forEach(System.out::println);
+            globalAndUsCollection.find(lastDayFilter).limit(5).forEach(System.out::println);
 
             System.out.println("\nQuery to get the last day data for all the countries within 500km of Paris.");
             Bson aroundParisFilter = geoWithinCenterSphere("loc", 2.341908, 48.860199, 500.0 / earthRadius);
-            statsCollection.find(and(lastDayFilter, aroundParisFilter)).forEach(System.out::println);
+            globalAndUsCollection.find(and(lastDayFilter, aroundParisFilter)).forEach(System.out::println);
 
             System.out.println("\nPrint the Metadata summary.");
             metadataCollection.find().forEach(System.out::println);
