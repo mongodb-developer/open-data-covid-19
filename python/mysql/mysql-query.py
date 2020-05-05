@@ -8,7 +8,7 @@ def main():
                                          database='covid19',
                                          auth_plugin='mysql_native_password')
     cursor = connection.cursor()
-    query = "SELECT * from statistics limit 20"
+    query = "SELECT * from global_and_us limit 20"
     cursor.execute(query)
 
     for i in cursor:

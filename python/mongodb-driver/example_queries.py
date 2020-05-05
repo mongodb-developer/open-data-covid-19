@@ -11,11 +11,11 @@ MDB_URL = "mongodb+srv://readonly:readonly@covid-19.hip2i.mongodb.net/covid19"
 def main():
     client = MongoClient(MDB_URL)
     db = client.get_database("covid19")
-    stats = db.get_collection("statistics")
+    stats = db.get_collection("global_and_us")
     metadata = db.get_collection("metadata")
 
     # Get some results for the UK:
-    print("\nMost recent 10 statistics for the UK:")
+    print("\nMost recent 10 global_and_us for the UK:")
     results = (
         stats.find({"country": "United Kingdom", "state": None})
         .sort("date", pymongo.DESCENDING)

@@ -13,9 +13,9 @@ def main():
     run_query(connection, 'select * from metadata')
     run_query(connection, 'select mc._id, mc.cities, mc.cities_idx from metadata m left outer join metadata_cities mc on m._id = mc._id limit 15')
     run_query(connection, 'select mc._id, mc.countries, mc.countries_idx from metadata m left outer join metadata_countries mc on m._id = mc._id limit 15')
-    run_query(connection, 'describe statistics')
-    run_query(connection, 'describe statistics_loc_coordinates')
-    run_query(connection, 'select * from statistics s left outer join statistics_loc_coordinates loc on s._id = loc._id order by s.date DESC limit 15')
+    run_query(connection, 'describe global_and_us')
+    run_query(connection, 'describe global_and_us_loc_coordinates')
+    run_query(connection, 'select * from global_and_us g left outer join global_and_us_loc_coordinates loc on g._id = loc._id order by g.date DESC limit 15')
     connection.close()
 
 
