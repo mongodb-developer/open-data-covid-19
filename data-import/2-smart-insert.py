@@ -44,7 +44,7 @@ def clean_key(string):
     if string == 'Country_Region':
         return 'country'
     if string == 'Admin2':
-        return 'city'
+        return 'county'
     if string == 'Province_State' or string == 'Province/State':
         return 'state'
     if string == 'Combined_Key':
@@ -298,11 +298,11 @@ def create_index_country_state(client, collection):
     coll.create_index([('country', pymongo.ASCENDING), ('state', pymongo.ASCENDING), ('date', pymongo.ASCENDING)], sparse=True)
 
 
-def create_index_country_state_city(client, collection):
+def create_index_country_state_county(client, collection):
     coll = client.get_database(DB).get_collection(collection)
     coll.create_index([('country', pymongo.ASCENDING), ('date', pymongo.ASCENDING)], sparse=True)
     coll.create_index([('country', pymongo.ASCENDING), ('state', pymongo.ASCENDING), ('date', pymongo.ASCENDING)], sparse=True)
-    coll.create_index([('country', pymongo.ASCENDING), ('state', pymongo.ASCENDING), ('city', pymongo.ASCENDING), ('date', pymongo.ASCENDING)], sparse=True)
+    coll.create_index([('country', pymongo.ASCENDING), ('state', pymongo.ASCENDING), ('county', pymongo.ASCENDING), ('date', pymongo.ASCENDING)], sparse=True)
 
 
 def create_indexes(client):
@@ -311,8 +311,8 @@ def create_indexes(client):
     create_indexes_generic(client, COLL_us)
     create_indexes_generic(client, COLL_global_and_us)
     create_index_country_state(client, COLL_global)
-    create_index_country_state_city(client, COLL_us)
-    create_index_country_state_city(client, COLL_global_and_us)
+    create_index_country_state_county(client, COLL_us)
+    create_index_country_state_county(client, COLL_global_and_us)
     create_indexes_countries_collection(client, COLL_countries)
     print('Created indexes in ', round(time.time() - start, 2), 's')
 
@@ -339,7 +339,7 @@ def create_metadata(client):
     countries = list(filter(None, coll.distinct('country')))
     states = list(filter(None, coll.distinct('state')))
     states_us = list(filter(None, coll_us.distinct('state')))
-    cities = list(filter(None, coll.distinct('city')))
+    counties = list(filter(None, coll.distinct('county')))
     iso3s = list(filter(None, coll.distinct('country_iso3')))
     uids = list(filter(None, coll.distinct('uid')))
     dates = list(coll.aggregate([{'$sort': {'date': 1}}, {'$group': {'_id': None, 'first': {'$first': '$date'}, 'last': {'$last': '$date'}}}, {'$project': {'_id': 0}}]))[0]
@@ -347,7 +347,7 @@ def create_metadata(client):
     metadata_coll = client.get_database(DB).get_collection(COLL_metadata)
     metadata_coll.delete_one({'_id': 'metadata'})
     metadata_coll.insert_one(
-        {'_id': 'metadata', 'countries': countries, 'states': states, 'states_us': states_us, 'cities': cities, 'iso3s': iso3s, 'uids': uids, 'first_date': dates['first'],
+        {'_id': 'metadata', 'countries': countries, 'states': states, 'states_us': states_us, 'counties': counties, 'iso3s': iso3s, 'uids': uids, 'first_date': dates['first'],
          'last_date': dates['last']})
     print('Created metadata in', round(time.time() - start, 2), 's')
 
