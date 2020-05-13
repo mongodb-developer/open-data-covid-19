@@ -33,7 +33,7 @@ type GlobalAndUS struct {
 
 	// Location:
 	CombinedName string `bson:"combined_name"`
-	City         string
+	County       string
 	State        string
 	Country      string
 	CountryCode  int32  `bson:"country_code"`
@@ -82,7 +82,7 @@ func main() {
 }
 
 // recentCountryStats prints the most recent 10 stats for a country.
-// Note that this won't work for "US" because that data is broken down by city & state.
+// Note that this won't work for "US" because that data is broken down by county & state.
 func recentCountryStats(global_and_us *mongo.Collection, country string) {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()

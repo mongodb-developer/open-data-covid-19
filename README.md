@@ -36,7 +36,7 @@ This collection contains only one single document. It contains the list of all t
   countries : [ "Afghanistan", "Albania", "Algeria", "..." ],
   states : [ "Alabama", "Alaska", "Alberta", "..." ],
   states_us : [ "Alabama", "Alaska", "American Samoa", "..." ],
-  cities : [ "Abbeville", "Acadia", "Accomack", "..." ],
+  counties : [ "Abbeville", "Acadia", "Accomack", "..." ],
   iso3s : [ "ABW", "AFG", "AGO", "..." ],
   uids : [ 4, 8, 12, ... ],
   first_date : 2020-01-22T00:00:00.000+00:00,
@@ -185,7 +185,7 @@ This collection is the most complete collection in this database. This collectio
 But with a little trick on top: the US cases are counted in both collections respectively:
 
 - at a country level in the first one,
-- and in a more detailed level (city, county, state) in the second one.
+- and in a more detailed level (county and state) in the second one.
 
 So to take advantages of both collections, I just removed the confirmed and deaths counts from the US documents which comes from the `global` collection.
 
@@ -236,7 +236,7 @@ The documents in this collection are exactly the same than in the collections me
 	"country_iso3" : "USA",
 	"country_code" : 840,
 	"fips" : 42101,
-	"city" : "Philadelphia",
+	"county" : "Philadelphia",
 	"state" : "Pennsylvania",
 	"country" : "US",
 	"combined_name" : "Philadelphia, Pennsylvania, US",

@@ -65,9 +65,9 @@ Creating indexes and metadata in 6.28 s
 	"country_iso3" : "USA",
 	"country_code" : 840,
 	"fips" : 36115,
-	"city" : "Washington",
+	"county" : "Washington",
 	"state" : "New York",
-	"country" : "US",
+	"cuntry" : "US",
 	"combined_name" : "Washington, New York, US",
 	"population" : 61204,
 	"loc" : {

@@ -15,7 +15,7 @@ public class Metadata {
     private Date lastDate;
     private List<String> countries;
     private List<String> states;
-    private List<String> cities;
+    private List<String> counties;
     private List<String> iso3s;
     private List<Integer> uids;
 
@@ -59,12 +59,12 @@ public class Metadata {
         this.states = states;
     }
 
-    public List<String> getCities() {
-        return cities;
+    public List<String> getCounties() {
+        return counties;
     }
 
-    public void setCities(List<String> cities) {
-        this.cities = cities;
+    public void setCounties(List<String> counties) {
+        this.counties = counties;
     }
 
     public List<String> getIso3s() {
@@ -90,7 +90,7 @@ public class Metadata {
         sb.append("lastDate  => ").append(lastDate).append("\n");
         sb.append("countries => List of ").append(countries.size()).append(" countries.\n");
         sb.append("states    => List of ").append(states.size()).append(" states.\n");
-        sb.append("cities    => List of ").append(cities.size()).append(" cities.\n");
+        sb.append("counties  => List of ").append(counties.size()).append(" counties.\n");
         sb.append("iso3s     => List of ").append(iso3s.size()).append(" iso3s.\n");
         sb.append("uids      => List of ").append(uids.size()).append(" uids.\n");
         return sb.toString();
@@ -105,13 +105,13 @@ public class Metadata {
         Metadata metadata = (Metadata) o;
         return Objects.equals(id, metadata.id) && Objects.equals(firstDate, metadata.firstDate) && Objects.equals(lastDate,
                                                                                                                   metadata.lastDate) && Objects
-                .equals(countries, metadata.countries) && Objects.equals(states, metadata.states) && Objects.equals(cities,
-                                                                                                                    metadata.cities) && Objects
+                .equals(countries, metadata.countries) && Objects.equals(states, metadata.states) && Objects.equals(counties,
+                                                                                                                    metadata.counties) && Objects
                 .equals(iso3s, metadata.iso3s) && Objects.equals(uids, metadata.uids);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, firstDate, lastDate, countries, states, cities, iso3s, uids);
+        return Objects.hash(id, firstDate, lastDate, countries, states, counties, iso3s, uids);
     }
 }

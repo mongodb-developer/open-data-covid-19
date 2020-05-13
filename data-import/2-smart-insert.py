@@ -41,8 +41,6 @@ def clean_key(string):
         return 'country_iso3'
     if string == 'code3':
         return 'country_code'
-    if string == 'Country_Region':
-        return 'country'
     if string == 'Admin2':
         return 'county'
     if string == 'Province_State' or string == 'Province/State':

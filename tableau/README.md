@@ -26,7 +26,7 @@ The details are:
 
 Once you have connected to the data source, you'll see various tables listed on the left-hand side. Unfortunately, because Tableau works with tables instead of MongoDB's rich documents, we have to flatten the documents into tables which can be rejoined within Tableau.
 
-It's most likely you'll be interested in the data in the "global_and_us" table, which contains the number of coronavirus statistics for each country (or in the case of the USA, by individual city).
+It's most likely you'll be interested in the data in the "global_and_us" table, which contains the number of coronavirus statistics for each country (or in the case of the USA, by individual county).
 
 ## Charting Trends With Time
 

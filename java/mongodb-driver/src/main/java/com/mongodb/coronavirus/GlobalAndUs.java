@@ -18,7 +18,7 @@ public class GlobalAndUs {
     @BsonProperty("country_iso3")
     private String countryIso3;
     private String state;
-    private String city;
+    private String county;
     @BsonProperty("combined_name")
     private String combinedName;
     private Integer confirmed;
@@ -85,12 +85,12 @@ public class GlobalAndUs {
         this.state = state;
     }
 
-    public String getCity() {
-        return city;
+    public String getCounty() {
+        return county;
     }
 
-    public void setCity(String city) {
-        this.city = city;
+    public void setCounty(String county) {
+        this.county = county;
     }
 
     public String getCombinedName() {
@@ -167,7 +167,7 @@ public class GlobalAndUs {
         sb.append(", countryIso2='").append(countryIso2).append('\'');
         sb.append(", countryIso3='").append(countryIso3).append('\'');
         sb.append(", state='").append(state).append('\'');
-        sb.append(", city='").append(city).append('\'');
+        sb.append(", county='").append(county).append('\'');
         sb.append(", combinedName='").append(combinedName).append('\'');
         sb.append(", confirmed=").append(confirmed);
         sb.append(", deaths=").append(deaths);
@@ -191,8 +191,8 @@ public class GlobalAndUs {
                                                                                                             globalAndUs.country) && Objects
                 .equals(countryCode, globalAndUs.countryCode) && Objects.equals(countryIso2,
                                                                                 globalAndUs.countryIso2) && Objects.equals(
-                countryIso3, globalAndUs.countryIso3) && Objects.equals(state, globalAndUs.state) && Objects.equals(city,
-                                                                                                                    globalAndUs.city) && Objects
+                countryIso3, globalAndUs.countryIso3) && Objects.equals(state, globalAndUs.state) && Objects.equals(county,
+                                                                                                                    globalAndUs.county) && Objects
                 .equals(combinedName, globalAndUs.combinedName) && Objects.equals(confirmed, globalAndUs.confirmed) && Objects.equals(
                 deaths, globalAndUs.deaths) && Objects.equals(recovered, globalAndUs.recovered) && Objects.equals(population,
                                                                                                                   globalAndUs.population) && Objects
@@ -201,7 +201,7 @@ public class GlobalAndUs {
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, uid, country, countryCode, countryIso2, countryIso3, state, city, combinedName, confirmed, deaths,
+        return Objects.hash(id, uid, country, countryCode, countryIso2, countryIso3, state, county, combinedName, confirmed, deaths,
                             recovered, population, date, fips, loc);
     }
 }
