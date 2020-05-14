@@ -124,10 +124,6 @@ def clean_all_docs(csvs):
 
 
 def data_hacking(recovered, confirmed_us, deaths_us):
-    # Fixing data for Canada
-    for d in recovered:
-        if d.get('country') == 'Canada' and is_blank(d.get('state')):
-            d['state'] = 'Recovered'
     # Ignoring lines without an UID as it's corrupted data
     confirmed_us = [d for d in confirmed_us if not d.get('uid', '') == '']
     deaths_us = [d for d in deaths_us if not d.get('uid', '') == '']
@@ -154,6 +150,8 @@ def print_warnings_and_exit_on_error(deaths, recovered, deaths_us):
 def combine_global_and_fips(confirmed_global, deaths_global, recovered_global, fips):
     error_output = []
     combined = []
+    remove_from_recovered = []
+
     for doc in confirmed_global:
         country = doc.get('country')
         state = doc.get('state')
@@ -173,6 +171,22 @@ def combine_global_and_fips(confirmed_global, deaths_global, recovered_global, f
             error_output.append("No FIPS found for " + doc['country'] + ' => ' + str(doc))
 
         combined.append({'confirmed_global': doc, 'deaths_global': doc1, 'recovered_global': doc2, 'fips': doc3})
+
+    for doc in recovered_global:
+        country = doc.get('country')
+        state = doc.get('state')
+
+        doc3 = find_same_area_country_state(fips, country, state)
+        if doc3:
+            fips.remove(doc3)
+        else:
+            error_output.append("No FIPS found for " + doc['country'] + ' => ' + str(doc))
+
+        combined.append({'confirmed_global': None, 'deaths_global': None, 'recovered_global': doc, 'fips': doc3})
+        remove_from_recovered.append(doc)
+
+    for doc in remove_from_recovered:
+        recovered_global.remove(doc)
 
     if len(error_output) != 0:
         for i in error_output:
@@ -249,6 +263,13 @@ def doc_generation(combined):
                             doc['deaths'] = v2
                     mdb_docs.append(doc)
 
+        if not cg and rg:
+            for k1, v1 in rg.items():
+                if '/' in k1:
+                    doc = fips.copy()
+                    doc['date'] = to_iso_date(k1)
+                    doc['recovered'] = v1
+                    mdb_docs.append(doc)
     return mdb_docs
 
 
