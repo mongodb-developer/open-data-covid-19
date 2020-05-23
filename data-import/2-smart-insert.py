@@ -123,7 +123,23 @@ def clean_all_docs(csvs):
     return map(lambda x: clean_docs(x), csvs)
 
 
-def data_hacking(recovered, confirmed_us, deaths_us):
+def data_hacking(confirmed, deaths, recovered, confirmed_us, deaths_us):
+    # Fix Hong Kong & Macau because of commit 3850c952f4ae5e19b0ff14ce71956f9b7416ffba
+    for d in confirmed:
+        if d.get('state', '') == 'Hong Kong':
+            d['state'] = 'Hong Kong SAR'
+        if d.get('state', '') == 'Macau':
+            d['state'] = 'Macau SAR'
+    for d in deaths:
+        if d.get('state', '') == 'Hong Kong':
+            d['state'] = 'Hong Kong SAR'
+        if d.get('state', '') == 'Macau':
+            d['state'] = 'Macau SAR'
+    for d in recovered:
+        if d.get('state', '') == 'Hong Kong':
+            d['state'] = 'Hong Kong SAR'
+        if d.get('state', '') == 'Macau':
+            d['state'] = 'Macau SAR'
     # Ignoring lines without an UID as it's corrupted data
     confirmed_us = [d for d in confirmed_us if not d.get('uid', '') == '']
     deaths_us = [d for d in deaths_us if not d.get('uid', '') == '']
@@ -497,7 +513,7 @@ def create_collection_stats_countries(client):
 def main():
     start = time.time()
     fips, confirmed_global, deaths_global, recovered_global, confirmed_us, deaths_us = clean_all_docs(get_all_csv_as_docs())
-    confirmed_us, deaths_us = data_hacking(recovered_global, confirmed_us, deaths_us)
+    confirmed_us, deaths_us = data_hacking(confirmed_global, deaths_global, recovered_global, confirmed_us, deaths_us)
     combined_global = combine_global_and_fips(confirmed_global, deaths_global, recovered_global, fips)
     combined_us = combine_us_and_fips(confirmed_us, deaths_us, fips)
     print_warnings_and_exit_on_error(deaths_global, recovered_global, deaths_us)
