@@ -18,7 +18,7 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <mongodb.version>4.0.2</mongodb.version>
         <maven-compiler-plugin.version>3.8.1</maven-compiler-plugin.version>
-        <log4j.version>2.13.1</log4j.version>
+        <log4j.version>2.13.3</log4j.version>
     </properties>
 
     <dependencies>
