@@ -124,22 +124,6 @@ def clean_all_docs(csvs):
 
 
 def data_hacking(confirmed, deaths, recovered, confirmed_us, deaths_us):
-    # Fix Hong Kong & Macau because of commit 3850c952f4ae5e19b0ff14ce71956f9b7416ffba
-    for d in confirmed:
-        if d.get('state', '') == 'Hong Kong':
-            d['state'] = 'Hong Kong SAR'
-        if d.get('state', '') == 'Macau':
-            d['state'] = 'Macau SAR'
-    for d in deaths:
-        if d.get('state', '') == 'Hong Kong':
-            d['state'] = 'Hong Kong SAR'
-        if d.get('state', '') == 'Macau':
-            d['state'] = 'Macau SAR'
-    for d in recovered:
-        if d.get('state', '') == 'Hong Kong':
-            d['state'] = 'Hong Kong SAR'
-        if d.get('state', '') == 'Macau':
-            d['state'] = 'Macau SAR'
     # Ignoring lines without an UID as it's corrupted data
     confirmed_us = [d for d in confirmed_us if not d.get('uid', '') == '']
     deaths_us = [d for d in deaths_us if not d.get('uid', '') == '']
