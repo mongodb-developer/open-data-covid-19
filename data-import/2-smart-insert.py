@@ -292,7 +292,7 @@ def mongodb_insert_many(client, collection, docs):
 def create_indexes_generic(client, collection):
     coll = client.get_database(DB).get_collection(collection)
     coll.create_index([('country_iso3', pymongo.ASCENDING), ('date', pymongo.ASCENDING)], sparse=True)
-    coll.create_index([('uid', pymongo.ASCENDING), ('date', pymongo.ASCENDING)])
+    coll.create_index([('uid', pymongo.ASCENDING), ('date', pymongo.ASCENDING)], unique=True)
     coll.create_index('date')
     coll.create_index([("loc", pymongo.GEOSPHERE)], sparse=True)
 
@@ -300,15 +300,10 @@ def create_indexes_generic(client, collection):
 def create_indexes_countries_collection(client, collection):
     coll = client.get_database(DB).get_collection(collection)
     coll.create_index('date')
-    coll.create_index([('country', pymongo.ASCENDING), ('date', pymongo.ASCENDING)])
+    coll.create_index([('country', pymongo.ASCENDING), ('date', pymongo.ASCENDING)], unique=True)
     coll.create_index([('country', pymongo.ASCENDING), ('states', pymongo.ASCENDING), ('date', pymongo.ASCENDING)], sparse=True)
     coll.create_index([('uids', pymongo.ASCENDING), ('date', pymongo.ASCENDING)])
     coll.create_index([('country_iso3s', pymongo.ASCENDING), ('date', pymongo.ASCENDING)], sparse=True)
-
-
-def create_index_country(client, collection):
-    coll = client.get_database(DB).get_collection(collection)
-    coll.create_index([('country', pymongo.ASCENDING), ('date', pymongo.ASCENDING)])
 
 
 def create_index_country_state(client, collection):
@@ -490,8 +485,40 @@ def create_collection_stats_countries(client):
             '$out': COLL_countries
         }
     ]
-    coll.aggregate(pipeline)
+    coll.aggregate(pipeline, allowDiskUse=True)
     print('Created collection', COLL_countries, 'in', round(time.time() - start, 2), 's')
+
+
+def calculate_daily_counts(client, collection, unique_daily_field):
+    start = time.time()
+    coll = client.get_database(DB).get_collection(collection)
+    pipeline = [
+        {"$sort": {unique_daily_field: 1, "date": 1}},
+        {"$group": {"_id": "$" + unique_daily_field, "docs": {"$push": {"dt": "$date", "c": "$confirmed", "d": "$deaths", "r": "$recovered"}}}},
+        {
+            "$set": {
+                "docs": {
+                    "$map": {
+                        "input": {"$range": [0, {"$size": "$docs"}]},
+                        "as": "idx",
+                        "in": {
+                            "$let": {
+                                "vars": {"d0": {"$arrayElemAt": ["$docs", {"$max": [0, {"$subtract": ["$$idx", 1]}]}]}, "d1": {"$arrayElemAt": ["$docs", "$$idx"]}},
+                                "in": {"dt": "$$d1.dt", "dc": {"$subtract": ["$$d1.c", "$$d0.c"]}, "dd": {"$subtract": ["$$d1.d", "$$d0.d"]},
+                                       "dr": {"$subtract": ["$$d1.r", "$$d0.r"]}}
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        {"$unwind": "$docs"},
+        {"$project": {"_id": "$$REMOVE", unique_daily_field: "$_id", "date": "$docs.dt", "confirmed_daily": {"$ifNull": ["$docs.dc", "$$REMOVE"]},
+                      "deaths_daily": {"$ifNull": ["$docs.dd", "$$REMOVE"]}, "recovered_daily": {"$ifNull": ["$docs.dr", "$$REMOVE"]}}},
+        {"$merge": {"into": collection, "on": [unique_daily_field, "date"], "whenNotMatched": "fail"}}
+    ]
+    coll.aggregate(pipeline, allowDiskUse=True)
+    print('Calculated daily fields for ', collection, 'in', round(time.time() - start, 2), 's')
 
 
 def main():
@@ -513,6 +540,10 @@ def main():
 
     create_indexes(client)
     fix_double_count_us(client, COLL_global_and_us)
+    calculate_daily_counts(client, COLL_us, "uid")
+    calculate_daily_counts(client, COLL_global, "uid")
+    calculate_daily_counts(client, COLL_global_and_us, "uid")
+    calculate_daily_counts(client, COLL_countries, "country")
 
     rename_collections(client, [COLL_global, COLL_us, COLL_global_and_us, COLL_countries])
     create_metadata(client)
