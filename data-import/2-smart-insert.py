@@ -392,7 +392,7 @@ def create_collection_stats_countries(client):
                     '$addToSet': '$combined_name'
                 },
                 'population': {
-                    '$first': '$population'
+                    '$sum': '$population'
                 },
                 'confirmed': {
                     '$sum': '$confirmed'
