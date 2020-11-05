@@ -518,7 +518,7 @@ def calculate_daily_counts(client, collection, unique_daily_field):
         {"$merge": {"into": collection, "on": [unique_daily_field, "date"], "whenNotMatched": "fail"}}
     ]
     coll.aggregate(pipeline, allowDiskUse=True)
-    print('Calculated daily fields for ', collection, 'in', round(time.time() - start, 2), 's')
+    print('Calculated daily fields for', collection, 'in', round(time.time() - start, 2), 's')
 
 
 def main():
