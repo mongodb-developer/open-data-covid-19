@@ -4,8 +4,9 @@ import time
 from collections import OrderedDict
 from datetime import datetime
 
-import pymongo
 from pymongo import MongoClient
+from pymongo import ASCENDING
+from pymongo import GEOSPHERE
 
 DB = 'covid19'
 TEMP = '_temp'
@@ -123,7 +124,14 @@ def clean_all_docs(csvs):
     return map(lambda x: clean_docs(x), csvs)
 
 
-def data_hacking(confirmed, deaths, recovered, confirmed_us, deaths_us):
+def data_hacking(confirmed, deaths, recovered, confirmed_us, deaths_us, fips):
+    # Fixing missing FIPS for the new state 'Repatriated Travellers' in Canada
+    fips_repatriated = [d for d in fips if d.get('country') == 'Canada' and d.get('state') == 'Repatriated Travellers']
+    confirmed_repatriated = [d for d in confirmed if d.get('country') == 'Canada' and d.get('state') == 'Repatriated Travellers']
+    if len(fips_repatriated) == 0 and len(confirmed_repatriated) == 1:
+        fips.append({'uid': 12417, 'country_iso2': 'CA', 'country_iso3': 'CAN', 'country_code': 124, 'country': 'Canada', 'state': 'Repatriated Travellers',
+                     'combined_name': 'Repatriated Travellers, Canada'})
+
     # Ignoring lines without an UID as it's corrupted data
     confirmed_us = [d for d in confirmed_us if not d.get('uid', '') == '']
     deaths_us = [d for d in deaths_us if not d.get('uid', '') == '']
@@ -291,32 +299,32 @@ def mongodb_insert_many(client, collection, docs):
 
 def create_indexes_generic(client, collection):
     coll = client.get_database(DB).get_collection(collection)
-    coll.create_index([('country_iso3', pymongo.ASCENDING), ('date', pymongo.ASCENDING)], sparse=True)
-    coll.create_index([('uid', pymongo.ASCENDING), ('date', pymongo.ASCENDING)], unique=True)
+    coll.create_index([('country_iso3', ASCENDING), ('date', ASCENDING)], sparse=True)
+    coll.create_index([('uid', ASCENDING), ('date', ASCENDING)], unique=True)
     coll.create_index('date')
-    coll.create_index([("loc", pymongo.GEOSPHERE)], sparse=True)
+    coll.create_index([("loc", GEOSPHERE)], sparse=True)
 
 
 def create_indexes_countries_collection(client, collection):
     coll = client.get_database(DB).get_collection(collection)
     coll.create_index('date')
-    coll.create_index([('country', pymongo.ASCENDING), ('date', pymongo.ASCENDING)], unique=True)
-    coll.create_index([('country', pymongo.ASCENDING), ('states', pymongo.ASCENDING), ('date', pymongo.ASCENDING)], sparse=True)
-    coll.create_index([('uids', pymongo.ASCENDING), ('date', pymongo.ASCENDING)])
-    coll.create_index([('country_iso3s', pymongo.ASCENDING), ('date', pymongo.ASCENDING)], sparse=True)
+    coll.create_index([('country', ASCENDING), ('date', ASCENDING)], unique=True)
+    coll.create_index([('country', ASCENDING), ('states', ASCENDING), ('date', ASCENDING)], sparse=True)
+    coll.create_index([('uids', ASCENDING), ('date', ASCENDING)])
+    coll.create_index([('country_iso3s', ASCENDING), ('date', ASCENDING)], sparse=True)
 
 
 def create_index_country_state(client, collection):
     coll = client.get_database(DB).get_collection(collection)
-    coll.create_index([('country', pymongo.ASCENDING), ('date', pymongo.ASCENDING)], sparse=True)
-    coll.create_index([('country', pymongo.ASCENDING), ('state', pymongo.ASCENDING), ('date', pymongo.ASCENDING)], sparse=True)
+    coll.create_index([('country', ASCENDING), ('date', ASCENDING)], sparse=True)
+    coll.create_index([('country', ASCENDING), ('state', ASCENDING), ('date', ASCENDING)], sparse=True)
 
 
 def create_index_country_state_county(client, collection):
     coll = client.get_database(DB).get_collection(collection)
-    coll.create_index([('country', pymongo.ASCENDING), ('date', pymongo.ASCENDING)], sparse=True)
-    coll.create_index([('country', pymongo.ASCENDING), ('state', pymongo.ASCENDING), ('date', pymongo.ASCENDING)], sparse=True)
-    coll.create_index([('country', pymongo.ASCENDING), ('state', pymongo.ASCENDING), ('county', pymongo.ASCENDING), ('date', pymongo.ASCENDING)], sparse=True)
+    coll.create_index([('country', ASCENDING), ('date', ASCENDING)], sparse=True)
+    coll.create_index([('country', ASCENDING), ('state', ASCENDING), ('date', ASCENDING)], sparse=True)
+    coll.create_index([('country', ASCENDING), ('state', ASCENDING), ('county', ASCENDING), ('date', ASCENDING)], sparse=True)
 
 
 def create_indexes(client):
@@ -524,7 +532,7 @@ def calculate_daily_counts(client, collection, unique_daily_field):
 def main():
     start = time.time()
     fips, confirmed_global, deaths_global, recovered_global, confirmed_us, deaths_us = clean_all_docs(get_all_csv_as_docs())
-    confirmed_us, deaths_us = data_hacking(confirmed_global, deaths_global, recovered_global, confirmed_us, deaths_us)
+    confirmed_us, deaths_us = data_hacking(confirmed_global, deaths_global, recovered_global, confirmed_us, deaths_us, fips)
     combined_global = combine_global_and_fips(confirmed_global, deaths_global, recovered_global, fips)
     combined_us = combine_us_and_fips(confirmed_us, deaths_us, fips)
     print_warnings_and_exit_on_error(deaths_global, recovered_global, deaths_us)
@@ -534,6 +542,7 @@ def main():
 
     client = get_mongodb_client()
     mongodb_insert_many(client, COLL_global, docs_global)
+    exit(1)
     mongodb_insert_many(client, COLL_us, docs_us)
     mongodb_insert_many(client, COLL_global_and_us, docs_global + docs_us)
     create_collection_stats_countries(client)
