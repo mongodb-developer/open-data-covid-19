@@ -542,7 +542,6 @@ def main():
 
     client = get_mongodb_client()
     mongodb_insert_many(client, COLL_global, docs_global)
-    exit(1)
     mongodb_insert_many(client, COLL_us, docs_us)
     mongodb_insert_many(client, COLL_global_and_us, docs_global + docs_us)
     create_collection_stats_countries(client)
