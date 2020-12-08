@@ -4,8 +4,9 @@ import time
 from collections import OrderedDict
 from datetime import datetime
 
-import pymongo
 from pymongo import MongoClient
+from pymongo import ASCENDING
+from pymongo import GEOSPHERE
 
 DB = 'covid19'
 TEMP = '_temp'
@@ -123,7 +124,14 @@ def clean_all_docs(csvs):
     return map(lambda x: clean_docs(x), csvs)
 
 
-def data_hacking(confirmed, deaths, recovered, confirmed_us, deaths_us):
+def data_hacking(confirmed, deaths, recovered, confirmed_us, deaths_us, fips):
+    # Fixing missing FIPS for the new state 'Repatriated Travellers' in Canada
+    fips_repatriated = [d for d in fips if d.get('country') == 'Canada' and d.get('state') == 'Repatriated Travellers']
+    confirmed_repatriated = [d for d in confirmed if d.get('country') == 'Canada' and d.get('state') == 'Repatriated Travellers']
+    if len(fips_repatriated) == 0 and len(confirmed_repatriated) == 1:
+        fips.append({'uid': 12417, 'country_iso2': 'CA', 'country_iso3': 'CAN', 'country_code': 124, 'country': 'Canada', 'state': 'Repatriated Travellers',
+                     'combined_name': 'Repatriated Travellers, Canada'})
+
     # Ignoring lines without an UID as it's corrupted data
     confirmed_us = [d for d in confirmed_us if not d.get('uid', '') == '']
     deaths_us = [d for d in deaths_us if not d.get('uid', '') == '']
@@ -291,37 +299,32 @@ def mongodb_insert_many(client, collection, docs):
 
 def create_indexes_generic(client, collection):
     coll = client.get_database(DB).get_collection(collection)
-    coll.create_index([('country_iso3', pymongo.ASCENDING), ('date', pymongo.ASCENDING)], sparse=True)
-    coll.create_index([('uid', pymongo.ASCENDING), ('date', pymongo.ASCENDING)])
+    coll.create_index([('country_iso3', ASCENDING), ('date', ASCENDING)], sparse=True)
+    coll.create_index([('uid', ASCENDING), ('date', ASCENDING)], unique=True)
     coll.create_index('date')
-    coll.create_index([("loc", pymongo.GEOSPHERE)], sparse=True)
+    coll.create_index([("loc", GEOSPHERE)], sparse=True)
 
 
 def create_indexes_countries_collection(client, collection):
     coll = client.get_database(DB).get_collection(collection)
     coll.create_index('date')
-    coll.create_index([('country', pymongo.ASCENDING), ('date', pymongo.ASCENDING)])
-    coll.create_index([('country', pymongo.ASCENDING), ('states', pymongo.ASCENDING), ('date', pymongo.ASCENDING)], sparse=True)
-    coll.create_index([('uids', pymongo.ASCENDING), ('date', pymongo.ASCENDING)])
-    coll.create_index([('country_iso3s', pymongo.ASCENDING), ('date', pymongo.ASCENDING)], sparse=True)
-
-
-def create_index_country(client, collection):
-    coll = client.get_database(DB).get_collection(collection)
-    coll.create_index([('country', pymongo.ASCENDING), ('date', pymongo.ASCENDING)])
+    coll.create_index([('country', ASCENDING), ('date', ASCENDING)], unique=True)
+    coll.create_index([('country', ASCENDING), ('states', ASCENDING), ('date', ASCENDING)], sparse=True)
+    coll.create_index([('uids', ASCENDING), ('date', ASCENDING)])
+    coll.create_index([('country_iso3s', ASCENDING), ('date', ASCENDING)], sparse=True)
 
 
 def create_index_country_state(client, collection):
     coll = client.get_database(DB).get_collection(collection)
-    coll.create_index([('country', pymongo.ASCENDING), ('date', pymongo.ASCENDING)], sparse=True)
-    coll.create_index([('country', pymongo.ASCENDING), ('state', pymongo.ASCENDING), ('date', pymongo.ASCENDING)], sparse=True)
+    coll.create_index([('country', ASCENDING), ('date', ASCENDING)], sparse=True)
+    coll.create_index([('country', ASCENDING), ('state', ASCENDING), ('date', ASCENDING)], sparse=True)
 
 
 def create_index_country_state_county(client, collection):
     coll = client.get_database(DB).get_collection(collection)
-    coll.create_index([('country', pymongo.ASCENDING), ('date', pymongo.ASCENDING)], sparse=True)
-    coll.create_index([('country', pymongo.ASCENDING), ('state', pymongo.ASCENDING), ('date', pymongo.ASCENDING)], sparse=True)
-    coll.create_index([('country', pymongo.ASCENDING), ('state', pymongo.ASCENDING), ('county', pymongo.ASCENDING), ('date', pymongo.ASCENDING)], sparse=True)
+    coll.create_index([('country', ASCENDING), ('date', ASCENDING)], sparse=True)
+    coll.create_index([('country', ASCENDING), ('state', ASCENDING), ('date', ASCENDING)], sparse=True)
+    coll.create_index([('country', ASCENDING), ('state', ASCENDING), ('county', ASCENDING), ('date', ASCENDING)], sparse=True)
 
 
 def create_indexes(client):
@@ -397,7 +400,7 @@ def create_collection_stats_countries(client):
                     '$addToSet': '$combined_name'
                 },
                 'population': {
-                    '$first': '$population'
+                    '$sum': '$population'
                 },
                 'confirmed': {
                     '$sum': '$confirmed'
@@ -490,14 +493,46 @@ def create_collection_stats_countries(client):
             '$out': COLL_countries
         }
     ]
-    coll.aggregate(pipeline)
+    coll.aggregate(pipeline, allowDiskUse=True)
     print('Created collection', COLL_countries, 'in', round(time.time() - start, 2), 's')
+
+
+def calculate_daily_counts(client, collection, unique_daily_field):
+    start = time.time()
+    coll = client.get_database(DB).get_collection(collection)
+    pipeline = [
+        {"$sort": {unique_daily_field: 1, "date": 1}},
+        {"$group": {"_id": "$" + unique_daily_field, "docs": {"$push": {"dt": "$date", "c": "$confirmed", "d": "$deaths", "r": "$recovered"}}}},
+        {
+            "$set": {
+                "docs": {
+                    "$map": {
+                        "input": {"$range": [0, {"$size": "$docs"}]},
+                        "as": "idx",
+                        "in": {
+                            "$let": {
+                                "vars": {"d0": {"$arrayElemAt": ["$docs", {"$max": [0, {"$subtract": ["$$idx", 1]}]}]}, "d1": {"$arrayElemAt": ["$docs", "$$idx"]}},
+                                "in": {"dt": "$$d1.dt", "dc": {"$subtract": ["$$d1.c", "$$d0.c"]}, "dd": {"$subtract": ["$$d1.d", "$$d0.d"]},
+                                       "dr": {"$subtract": ["$$d1.r", "$$d0.r"]}}
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        {"$unwind": "$docs"},
+        {"$project": {"_id": "$$REMOVE", unique_daily_field: "$_id", "date": "$docs.dt", "confirmed_daily": {"$ifNull": ["$docs.dc", "$$REMOVE"]},
+                      "deaths_daily": {"$ifNull": ["$docs.dd", "$$REMOVE"]}, "recovered_daily": {"$ifNull": ["$docs.dr", "$$REMOVE"]}}},
+        {"$merge": {"into": collection, "on": [unique_daily_field, "date"], "whenNotMatched": "fail"}}
+    ]
+    coll.aggregate(pipeline, allowDiskUse=True)
+    print('Calculated daily fields for', collection, 'in', round(time.time() - start, 2), 's')
 
 
 def main():
     start = time.time()
     fips, confirmed_global, deaths_global, recovered_global, confirmed_us, deaths_us = clean_all_docs(get_all_csv_as_docs())
-    confirmed_us, deaths_us = data_hacking(confirmed_global, deaths_global, recovered_global, confirmed_us, deaths_us)
+    confirmed_us, deaths_us = data_hacking(confirmed_global, deaths_global, recovered_global, confirmed_us, deaths_us, fips)
     combined_global = combine_global_and_fips(confirmed_global, deaths_global, recovered_global, fips)
     combined_us = combine_us_and_fips(confirmed_us, deaths_us, fips)
     print_warnings_and_exit_on_error(deaths_global, recovered_global, deaths_us)
@@ -507,12 +542,17 @@ def main():
 
     client = get_mongodb_client()
     mongodb_insert_many(client, COLL_global, docs_global)
+    exit(1)
     mongodb_insert_many(client, COLL_us, docs_us)
     mongodb_insert_many(client, COLL_global_and_us, docs_global + docs_us)
     create_collection_stats_countries(client)
 
     create_indexes(client)
     fix_double_count_us(client, COLL_global_and_us)
+    calculate_daily_counts(client, COLL_us, "uid")
+    calculate_daily_counts(client, COLL_global, "uid")
+    calculate_daily_counts(client, COLL_global_and_us, "uid")
+    calculate_daily_counts(client, COLL_countries, "country")
 
     rename_collections(client, [COLL_global, COLL_us, COLL_global_and_us, COLL_countries])
     create_metadata(client)
