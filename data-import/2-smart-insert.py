@@ -4,9 +4,9 @@ import time
 from collections import OrderedDict
 from datetime import datetime
 
-from pymongo import MongoClient
 from pymongo import ASCENDING
 from pymongo import GEOSPHERE
+from pymongo import MongoClient
 
 DB = 'covid19'
 TEMP = '_temp'
@@ -281,11 +281,15 @@ def doc_generation(combined):
     return mdb_docs
 
 
-def get_mongodb_client():
+def check_mongodb_uri():
     uri = sys.argv[1]
     if not uri:
         print('MongoDB URI is missing in cmd line arg 1.')
+        print('You can provide multiple URIs arguments.')
         exit(1)
+
+
+def get_mongodb_client(uri):
     return MongoClient(uri)
 
 
@@ -531,6 +535,7 @@ def calculate_daily_counts(client, collection, unique_daily_field):
 
 def main():
     start = time.time()
+    check_mongodb_uri()
     fips, confirmed_global, deaths_global, recovered_global, confirmed_us, deaths_us = clean_all_docs(get_all_csv_as_docs())
     confirmed_us, deaths_us = data_hacking(confirmed_global, deaths_global, recovered_global, confirmed_us, deaths_us, fips)
     combined_global = combine_global_and_fips(confirmed_global, deaths_global, recovered_global, fips)
@@ -540,21 +545,24 @@ def main():
     docs_us = doc_generation(combined_us)
     print(len(docs_global) + len(docs_us), 'documents have been generated in', round(time.time() - start, 2), 's')
 
-    client = get_mongodb_client()
-    mongodb_insert_many(client, COLL_global, docs_global)
-    mongodb_insert_many(client, COLL_us, docs_us)
-    mongodb_insert_many(client, COLL_global_and_us, docs_global + docs_us)
-    create_collection_stats_countries(client)
+    for uri in sys.argv[1:]:
+        start = time.time()
+        client = get_mongodb_client(uri)
+        mongodb_insert_many(client, COLL_global, docs_global)
+        mongodb_insert_many(client, COLL_us, docs_us)
+        mongodb_insert_many(client, COLL_global_and_us, docs_global + docs_us)
+        create_collection_stats_countries(client)
 
-    create_indexes(client)
-    fix_double_count_us(client, COLL_global_and_us)
-    calculate_daily_counts(client, COLL_us, "uid")
-    calculate_daily_counts(client, COLL_global, "uid")
-    calculate_daily_counts(client, COLL_global_and_us, "uid")
-    calculate_daily_counts(client, COLL_countries, "country")
+        create_indexes(client)
+        fix_double_count_us(client, COLL_global_and_us)
+        calculate_daily_counts(client, COLL_us, "uid")
+        calculate_daily_counts(client, COLL_global, "uid")
+        calculate_daily_counts(client, COLL_global_and_us, "uid")
+        calculate_daily_counts(client, COLL_countries, "country")
 
-    rename_collections(client, [COLL_global, COLL_us, COLL_global_and_us, COLL_countries])
-    create_metadata(client)
+        rename_collections(client, [COLL_global, COLL_us, COLL_global_and_us, COLL_countries])
+        create_metadata(client)
+        print('Total time to update this cluster', round(time.time() - start, 2), 's')
 
 
 if __name__ == '__main__':
